@@ -1,0 +1,93 @@
+# This file could be used for testing the API with Visual Studio Code
+
+## Execute Log In
+POST http://localhost:3001/api/sessions HTTP/1.1
+content-type: application/json
+
+{
+    "username": "enrico@gmail.com",
+    "password": "pass"
+}
+###
+
+## Checking if user is still logged-in.
+GET http://localhost:3001/api/sessions/current HTTP/1.1
+###
+
+## Execute Log Out.
+DELETE http://localhost:3001/api/sessions/current HTTP/1.1
+###
+
+
+## Get all the pages for the frontoffice visualization.
+GET http://localhost:3001/api/pages HTTP/1.1
+###
+
+## Get a specific page, identified by the id <id>, along with the associated blocks.
+GET http://localhost:3001/api/pages/1 HTTP/1.1
+###
+
+
+
+## Create a new Page, along with the associated blocks.
+POST http://localhost:3001/api/pages HTTP/1.1
+content-type: application/json
+
+{
+  "title": "Nuova Pagina",
+  "creationDate": "2023-02-28",
+  "publicationDate": "2023-02-28",
+  "blocks": [
+    {
+      "type": "Header",
+      "content": "Nuovo",
+      "blockOrder": 1
+    },
+    {
+      "type": "Paragraph",
+      "content": "Paragrafo",
+      "blockOrder": 2
+    }
+  ]
+}
+###
+
+## Updates the page.
+PUT http://localhost:3001/api/pages/1 HTTP/1.1
+content-type: application/json
+
+{
+  "id": 1,
+  "title": "pages1",
+  "creationDate": "2023-02-28",
+  "blocks": [
+    {
+      "id": 1,
+      "pageId": 1,
+      "type": "Header",
+      "content": "Blog",
+      "blockOrder": 1
+    },
+    {
+      "id": 2,
+      "pageId": 1,
+      "type": "Paragraph",
+      "content": "Ciao Sono Enrico",
+      "blockOrder": 2
+    }
+  ]
+}
+
+###
+
+# Delete the page.
+DELETE http://localhost:3001/api/pages/2 HTTP/1.1
+###
+
+## Get the website name.
+GET http://localhost:3001/api/websites HTTP/1.1
+###
+
+## Update the website name.
+PUT http://localhost:3001/api/websites/nuovoNome HTTP/1.1
+###
