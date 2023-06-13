@@ -7,7 +7,7 @@ const db = require('./db');
 // This function returns all pages.
 exports.getPages = () => {
     return new Promise((resolve, reject) => {
-        const sql = 'SELECT * FROM pages';
+        const sql = 'SELECT pages.id,userId,username,title,creationDate,publicationDate FROM pages,users WHERE pages.userId=users.id ORDER BY publicationDate';
         db.all(sql, [], (err, rows) => {
             if (err)
                 reject(err);
@@ -22,7 +22,7 @@ exports.getPages = () => {
 // This function return a specific page given its id.
 exports.getPage = (id) => {
     return new Promise((resolve, reject) => {
-        const sql = 'SELECT * FROM pages WHERE id=?';
+        const sql = 'SELECT pages.id,userId,username,title,creationDate,publicationDate FROM pages,users WHERE pages.userId=users.id AND pages.id=?';
         db.get(sql, [id], (err, row) => {
             if (err) {
                 reject(err);

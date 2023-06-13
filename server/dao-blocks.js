@@ -19,6 +19,7 @@ exports.getBlocksByPageId = (pageId) => {
     });
 };
 
+// NON USATA
 // this function returns the number of blocks of a given page
 exports.getNumberOfBlocks = (pageId) => {
     return new Promise((resolve, reject) => {
@@ -68,6 +69,7 @@ exports.insertBlock = (block) => {
     });
 };
 
+// NON USATA
 // This function updates a block.
 exports.updateBlock = (blockId,block) => {
     return new Promise((resolve, reject) => {
@@ -87,14 +89,15 @@ exports.updateBlock = (blockId,block) => {
 };
 
 // This function deletes an existing block given its id.
-exports.deleteBlocksFromIncreasingOrder = (pageId,blockOrder) => {
+exports.deleteAllPageBlocks = (pageId) => {
     return new Promise((resolve, reject) => {
-        const sql = 'DELETE FROM blocks WHERE pageId=? AND blockOrder>=?';
-        db.run(sql, [pageId,blockOrder], function (err) {
+        console.log("pageid" + pageId);
+        const sql = 'DELETE FROM blocks WHERE pageId=?';
+        db.run(sql, [pageId], function (err) {
             if (err) {
                 reject(err);
             }
-
+            console.log(this.changes);
             if (this.changes === 0)
                 resolve({ error: 'No blocks deleted.' });
             else

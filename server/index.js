@@ -224,9 +224,9 @@ app.post('/api/pages', isLoggedIn,
   }
 );
 
-// PUT /api/pages/<id>
+// POST /api/pages/<id>
 // Update a Page, identified by the id <id>, along with the associated blocks.
-app.put('/api/pages/:id',
+app.post('/api/pages/:id',
   isLoggedIn,
   [
     param('id').isInt(),
@@ -262,7 +262,6 @@ app.put('/api/pages/:id',
       };
 
       const blocks = req.body.blocks.map((block) => ({
-        id: (block.id) ? block.id : undefined,
         pageId: page.id,
         type: block.type,
         content: block.content,
@@ -284,52 +283,20 @@ app.put('/api/pages/:id',
       if (up_page.error)
         return res.status(404).json(up_page);
 
-      const num_db_blocks = await blocksDao.getNumberOfBlocks(up_page.id);
+      // delete all blocks of the page
+      const num_deleted = await blocksDao.deleteAllPageBlocks(up_page.id);
+      if (num_deleted.error)
+        return res.status(404).json(num_deleted);
 
-      let db_blocks = blocks.slice(0, num_db_blocks);
-      let new_db_blocks = [];
-      let client_blocks = blocks.slice(num_db_blocks);
-      let new_client_blocks = [];
-
-      if (blocks.length > num_db_blocks) {
-        // update blocks until num_db_blocks (db_blocks), insert the remaining ones (client_blocks)
-        try {
-          new_db_blocks = await Promise.all(db_blocks.map(async (block) => {
-            return await blocksDao.updateBlock(block.id, block);
-          }));
-        } catch (error) {
-          return res.status(404).json(error);
-        }
-        new_client_blocks = await Promise.all(client_blocks.map(async (block) => {
-          return await blocksDao.insertBlock(block);
-        }));
-      } else if (blocks.length < num_db_blocks) {
-        // update blocks until blocks.length (db_blocks), delete the remaining ones (num_db_blocks-db_blocks.length)
-        try {
-          new_db_blocks = await Promise.all(db_blocks.map(async (block) => {
-            return await blocksDao.updateBlock(block.id, block);
-          }));
-        } catch (error) {
-          return res.status(404).json(error);
-        }
-        const start_deletion_order = db_blocks.length + 1;
-        const deletion = await blocksDao.deleteBlocksFromIncreasingOrder(up_page.id, start_deletion_order);
-        if (deletion.error)
-          return res.status(404).json(deletion);
-      } else {
-        // update all blocks (db_blocks)
-        try {
-          new_db_blocks = await Promise.all(db_blocks.map(async (block) => {
-            return await blocksDao.updateBlock(block.id, block);
-          }));
-        } catch (error) {
-          return res.status(404).json(error);
-        }
-      }
+      // insert the blocks from scratch
+      const new_blocks = await Promise.all(blocks.map(async (block) => {
+        return await blocksDao.insertBlock(block);
+      }));
 
       // construct the returning object
-      up_page.blocks = new_db_blocks.concat(new_client_blocks);
+      up_page.blocks = new_blocks;
 
+      // return it
       res.json(up_page);
     } catch (err) {
       res.status(503).json({ error: `Database error during the update of page ${req.params.id}: ${err}` });

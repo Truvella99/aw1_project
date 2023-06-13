@@ -45,7 +45,7 @@ INSERT INTO "blocks" VALUES (2,1,'Paragraph','Ciao Sono Enrico',2);
 -- pages2
 INSERT INTO "pages" VALUES (2,1,'pages2',DATE('2023-02-29'),NULL);
 INSERT INTO "blocks" VALUES (3,2,'Header','Gallery',1);
-INSERT INTO "blocks" VALUES (4,2,'Image','http://localhost:3001/images/image1.jpg',2);
+INSERT INTO "blocks" VALUES (4,2,'Image','image1.jpg',2);
 
 -- pages 3
 INSERT INTO "pages" VALUES (3,1,'pages3',DATE('2023-02-28'),DATE('2023-08-28'));
@@ -60,12 +60,12 @@ INSERT INTO "blocks" VALUES (8,4,'Paragraph','Mi piace Leggere',2);
 -- pages 5
 INSERT INTO "pages" VALUES (5,1,'pages5',DATE('2023-02-28'),DATE('2023-06-10'));
 INSERT INTO "blocks" VALUES (9,5,'Header','Sport',1);
-INSERT INTO "blocks" VALUES (10,5,'Image','http://localhost:3001/images/image2.jpg',2);
+INSERT INTO "blocks" VALUES (10,5,'Image','image2.jpg',2);
 
 -- pages 6
 INSERT INTO "pages" VALUES (6,1,'pages6',DATE('2023-02-29'),DATE('2023-06-10'));
 INSERT INTO "blocks" VALUES (11,6,'Header','Film',1);
-INSERT INTO "blocks" VALUES (12,6,'Image','http://localhost:3001/images/image3.jpg',2);
+INSERT INTO "blocks" VALUES (12,6,'Image','image3.jpg',2);
 
 -- website
 INSERT INTO "website" VALUES("CMSMALL");

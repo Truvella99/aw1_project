@@ -53,7 +53,7 @@ content-type: application/json
 ###
 
 ## Updates the page.
-PUT http://localhost:3001/api/pages/1 HTTP/1.1
+POST http://localhost:3001/api/pages/1 HTTP/1.1
 content-type: application/json
 
 {
@@ -62,14 +62,12 @@ content-type: application/json
   "creationDate": "2023-02-28",
   "blocks": [
     {
-      "id": 1,
       "pageId": 1,
       "type": "Header",
       "content": "Blog",
       "blockOrder": 1
     },
     {
-      "id": 2,
       "pageId": 1,
       "type": "Paragraph",
       "content": "Ciao Sono Enrico",

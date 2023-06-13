@@ -4,11 +4,12 @@
 
 ## React Client Application Routes
 
-- Route `/`: main web page that contains the published pages available in the application (if not logged in), or all the pages available in the application (if logged in as an user or admin).
-- Route `/login`: web page used to display the login form, in blockOrder to perform the login
-- Route `/pages/add`: web page that contains an empty page structure, used to create a page for a certain user. 
-- Route `/pages/view/:id`: web page that contains a single page that has been opened, used to view that page in detail. `:id`: Route param that identifies the id of the page to be viewed.
-- Route `/pages/edit/:id`: web page that contains a single page that has been opened, used to edit the page (if logged user with the rights or admin). `:id`: Route param that identifies the id of the page to edit.
+- Route `/`  : main web page that contains the published pages available in the application (front office).
+- Route `/backoffice`  : web page that contains all the pages available in the application, available only if logged in (back office).
+- Route `/login`  : web page used to display the login form, in blockOrder to perform the login
+- Route `/pages/add`  : web page that contains an empty page structure, used to create a page for a certain user. 
+- Route `/pages/view/:id`  : web page that contains a single page that has been opened, used to view that page in detail. `:id`: Route param that identifies the id of the page to be viewed.
+- Route `/pages/edit/:id`  : web page that contains a single page that has been opened, used to edit the page (if logged user with the rights or admin). `:id`: Route param that identifies the id of the page to edit.
 
 ## API Server
 
@@ -25,6 +26,7 @@
     [{
         "id": 1,
         "userId": 1,
+        "username": "Enrico",
         "title": "Pagina1",
         "creationDate": "2023-02-28",
         "publicationDate": "2023-02-28",
@@ -44,6 +46,7 @@
     {
         "id": 1,
         "userId": 1,
+        "username": "Enrico",
         "title": "Pagina1",
         "creationDate": "2023-02-28",
         "publicationDate": "2023-02-28",
@@ -98,31 +101,29 @@
         ]
     }
     ```
-- PUT `/api/pages/<id>`
+- POST `/api/pages/<id>`
   - Description: Update a Page, identified by the id `<id>`, along with the associated blocks.
 
     Request body: An object representing a page and the associated blocks (Content-Type: `application/json`).
     ```
     {
-        "id": 1,
-        "title": "Pagina1",
-        "creationDate": "2023-02-28",
-        "publicationDate": "2023-02-28",
-        "blocks" : [{
-            "id": 1,
-            "pageId": 1,
-            "type": "Header",
-            "content": "Ciao Sono Domenico",
-            "blockOrder": "1",
+      "id": 1,
+      "title": "pages1",
+      "creationDate": "2023-02-28",
+      "blocks": [
+        {
+          "pageId": 1,
+          "type": "Header",
+          "content": "Blog",
+          "blockOrder": 1
         },
         {
-            "pageId": 1,
-            "type": "Paragraph",
-            "content": "Passeggio Spesso, bla bla bla ...",
-            "blockOrder": "2",
+          "pageId": 1,
+          "type": "Paragraph",
+          "content": "Ciao Sono Enrico",
+          "blockOrder": 2
         }
-        ...
-        ]
+      ]
     }
     ```
 
@@ -131,27 +132,27 @@
     Response body: An object representing the updated page (Content-Type: `application/json`).
     ```
     {
-        "id": 1,
-        "userId": 1,
-        "title": "Pagina1",
-        "creationDate": "2023-02-28",
-        "publicationDate": "2023-02-28",
-        "blocks" : [{
-            "id": 1,
-            "pageId": 1,
-            "type": "Header",
-            "content": "Ciao Sono Domenico",
-            "blockOrder": "1",
+      "id": 1,
+      "userId": 1,
+      "title": "pages1",
+      "creationDate": "2023-02-28",
+      "publicationDate": null,
+      "blocks": [
+        {
+          "id": 31,
+          "pageId": 1,
+          "type": "Header",
+          "content": "Blog",
+          "blockOrder": 1
         },
         {
-            "id": 2,
-            "pageId": 1,
-            "type": "Paragraph",
-            "content": "Passeggio Spesso, bla bla bla ...",
-            "blockOrder": "2",
+          "id": 32,
+          "pageId": 1,
+          "type": "Paragraph",
+          "content": "Ciao Sono Enrico",
+          "blockOrder": 2
         }
-        ...
-        ]
+      ]
     }
     ```
 - DELETE `/api/pages/<id>`
@@ -172,14 +173,22 @@
     Request body:
     ```
     {
-      "username": "harry@test.com",
-      "password": "pwd"
+      "username": "giorgio@gmail.com",
+      "password": "pass"
     }
     ```
 
     Response: `200 OK` (success) or `500 Internal Server Error` (generic error).
 
-    Response body: _None_
+    Response body:
+    ```
+    {
+      "id": 2,
+      "username": "giorgio@gmail.com",
+      "isAdmin": 0,
+      "name": "Giorgio"
+    }
+    ```
 - GET `/api/sessions/current`
   - Description: Verify if the given session is still valid and return the info about the logged-in user. A cookie with a VALID SESSION ID must be provided to get the info of the user authenticated in the current session.
 
@@ -190,9 +199,10 @@
     Response body:
     ```
     {
-      "username": "harry@test.com",
-      "id": 4,
-      "name": "Harry"
+      "id": 2,
+      "username": "giorgio@gmail.com",
+      "isAdmin": 0,
+      "name": "Giorgio"
     }
     ```
 - DELETE `/api/session/current`
@@ -260,9 +270,17 @@
 
 ## Main React Components
 
-- `ListOfSomething` (in `List.js`): component purpose and main functionality
-- `GreatButton` (in `GreatButton.js`): component purpose and main functionality
-- ...
+- `NavBar` (in `components/Navbar.jsx`): navbar component used to display the website name, along with eventual change name button and user information
+- `ListOfPages` (in `*.jsx`): component used to display the list of all pages (published in frontoffice, all in backoffice)
+- `PageElement` (in `*.jsx`): component used to display the single page in the list of all pages (published in frontoffice, all in backoffice)
+- `AddButton` (in `*.jsx`): button to add a new page (in the backoffice)
+- `LoginForm` (in `components/AuthComponents.jsx`): component used to display the login form, necessary to do the login
+- `PageComponent` (in `*.jsx`): component used to display the single page in detail
+- `PageContent` (in `*.jsx`): component used to display all the blocks inside a page, when viewing the page in detail
+- `Header` (in `*.jsx`): component used to display blocks of type Header, inside the PageContent
+- `Paragraph` (in `*.jsx`): component used to display blocks of type Paragraph, inside the PageContent
+- `Image` (in `*.jsx`): component used to display blocks of type Image, inside the PageContent
+- `BlockManagement` (in `*.jsx`): component used to add new block of various types and select new image when editing a `Image` type block.
 
 (only _main_ components, minor ones may be skipped)
 
