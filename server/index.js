@@ -4,13 +4,14 @@
 const express = require('express');
 const morgan = require('morgan');                                  // logging middleware
 const cors = require('cors');
-
+const dayjs = require('dayjs');
 const { param, check, validationResult, } = require('express-validator'); // validation middleware
 
-const blocksDao = require('./dao-blocks'); // module for accessing the films table in the DB
-const pagesDao = require('./dao-pages'); // module for accessing the films table in the DB
-const usersDao = require('./dao-users'); // module for accessing the user table in the DB
-const websiteDao = require('./dao-website'); // module for accessing the films table in the DB
+const blocksDao = require('./dao-blocks'); // module for accessing the blocks table in the DB
+const pagesDao = require('./dao-pages'); // module for accessing the pages table in the DB
+const usersDao = require('./dao-users'); // module for accessing the users table in the DB
+const websiteDao = require('./dao-website'); // module for accessing the website table in the DB
+const imagesDao = require('./dao-images'); // module for accessing the images table in the DB
 
 /*** init express and set-up the middlewares ***/
 const app = express();
@@ -135,7 +136,19 @@ app.delete('/api/sessions/current', (req, res) => {
   });
 });
 
+// GET /api/authors
+// This route is used to retrieve all the authors of the application if needed, admin only
+app.get('/api/authors' ,(req,res) => {
+  // Get all the authors
+  usersDao.getAuthors()
+    .then(authors => res.json(authors))
+    .catch((err) => res.status(500).json(err)); // always return a json and an error message
+}
+);
+
 /*** PAGES API ***/
+
+
 // GET /api/pages
 // get all the information of the pages for the frontoffice
 app.get('/api/pages', (req, res) => {
@@ -178,6 +191,7 @@ app.get('/api/pages/:id', [
 // Create a new Page, along with the associated blocks.
 app.post('/api/pages', isLoggedIn,
   [
+    check('userId').isInt(),
     check('title').notEmpty(),
     // only date (first ten chars) and valid ISO
     check('creationDate').isLength({ min: 10, max: 10 }).isISO8601({ strict: true }),
@@ -192,25 +206,70 @@ app.post('/api/pages', isLoggedIn,
       return res.status(422).json({ error: errors.join(", ") }); // error message is a single string with all error joined together
     }
     try {
+      // check if user id exists
+      const userId = req.body.userId;
+      const user = await usersDao.getUserById(userId);
+      if (user.error)
+        return res.status(404).json(user);
+      // check if this id is the same of authenticated user (not an Admin), otherwise it's ok
+      if(!req.user.isAdmin && userId !== req.user.id) {
+        return res.status(422).json({ error: "Cannot Create a Page for Other Users"});
+      }
+
+      // check if publication date is before creation date 
+      if (req.body.publicationDate && dayjs(req.body.publicationDate).isBefore(dayjs(req.body.creationDate),'day')) {
+        return res.status(422).json({ error: "Cannot Create a Page with misleading dates"});
+      }
+
       const page = {
-        userId: req.user.id,
+        userId: userId,
         title: req.body.title,
         creationDate: req.body.creationDate,
         publicationDate: req.body.publicationDate,
       };
 
-      // create the page
-      const new_page = await pagesDao.insertPage(page);
-
       const blocks = req.body.blocks.map((block) => ({
-        pageId: new_page.id,
+        pageId: undefined,
         type: block.type,
         content: block.content,
         blockOrder: block.blockOrder
-      }));
+      })).sort((a, b) => a.blockOrder - b.blockOrder);
+
+      // check that there is at least one header blocks and another block
+      if (blocks.length < 2 || blocks.every((block) => block.type !== 'Header')) {
+        return res.status(422).json({ error: "Blocks Costraint Not Respected"});
+      }
+
+      // additional check to make sure there are no blocks with same blockOrder
+      const same_order = blocks.some((element, index) => {
+        return blocks.findIndex((el, idx) => el.blockOrder === element.blockOrder && idx !== index) !== -1;
+      });
+
+      if (same_order === true) {
+        return res.status(422).json({ error: '2 Blocks have the same order.' });
+      }
+
+      // check that the blocks of type Image have a content that is into the image table
+      const images = await imagesDao.getAllImages();
+
+      let wrongImageContent;
+
+      blocks.forEach((block) => {
+          if (block.type === "Image" && !images.some(image => image.name === block.content)) {
+            wrongImageContent = block.content;
+          }
+      });
+
+      if (wrongImageContent) {
+        return res.status(422).json({ error: `Image Block have mismatched content: ${wrongImageContent}.` });
+      }
+
+      // create the page
+      const new_page = await pagesDao.insertPage(page);
 
       // create the blocks
       const new_blocks = await Promise.all(blocks.map(async (block) => {
+        block.pageId = new_page.id;
         return await blocksDao.insertBlock(block);
       }));
 
@@ -229,6 +288,7 @@ app.post('/api/pages', isLoggedIn,
 app.post('/api/pages/:id',
   isLoggedIn,
   [
+    check('userId').isInt(),
     param('id').isInt(),
     check('id').isInt(),
     check('title').notEmpty(),
@@ -253,9 +313,24 @@ app.post('/api/pages/:id',
     }
 
     try {
+      // check if user id exists
+      const userId = req.body.userId;
+      const user = await usersDao.getUserById(userId);
+      if (user.error)
+        return res.status(404).json(user);
+      // check if this id is the same of authenticated user (not an Admin), otherwise it's ok
+      if(!req.user.isAdmin && userId !== req.user.id) {
+        return res.status(422).json({ error: "Cannot Update a Page for Other Users"});
+      }
+
+      // check if publication date is before creation date 
+      if (req.body.publicationDate && dayjs(req.body.publicationDate).isBefore(dayjs(req.body.creationDate),'day')) {
+        return res.status(422).json({ error: "Cannot Update a Page with misleading dates"});
+      }
+
       const page = {
         id: req.body.id,
-        userId: req.user.id,
+        userId: userId,
         title: req.body.title,
         creationDate: req.body.creationDate,
         publicationDate: req.body.publicationDate,
@@ -268,14 +343,33 @@ app.post('/api/pages/:id',
         blockOrder: block.blockOrder
       })).sort((a, b) => a.blockOrder - b.blockOrder);
 
+      // check that there is at least one header blocks and another block
+      if (blocks.length < 2 || blocks.every((block) => block.type !== 'Header')) {
+        return res.status(422).json({ error: "Blocks Costraint Not Respected"});
+      }
+
       // additional check to make sure there are no blocks with same blockOrder
-      //(should not happen for client purposes) 
       const same_order = blocks.some((element, index) => {
         return blocks.findIndex((el, idx) => el.blockOrder === element.blockOrder && idx !== index) !== -1;
       });
 
       if (same_order === true) {
         return res.status(422).json({ error: '2 Blocks have the same order.' });
+      }
+
+      // check that the blocks of type Image have a content that is into the image table
+      const images = await imagesDao.getAllImages();
+
+      let wrongImageContent;
+      
+      blocks.forEach((block) => {
+          if (block.type === "Image" && !images.some(image => image.name === block.content)) {
+            wrongImageContent = block.content;
+          }
+      });
+
+      if (wrongImageContent) {
+        return res.status(422).json({ error: `Image Block have mismatched content: ${wrongImageContent}.` });
       }
 
       // update the page
@@ -317,7 +411,7 @@ app.delete('/api/pages/:id',
       return res.status(422).json({ error: errors.join(", ") }); // error message is a single string with all error joined together
     }
     try {
-      // NOTE: if there is no film with the specified id, the delete operation is considered successful.
+      // NOTE: if there is no pages with the specified id, the delete operation is considered successful.
       const result = await pagesDao.deletePage(req.user.isAdmin, req.user.id, req.params.id);
       if (result == null)
         return res.status(200).json({});
@@ -337,10 +431,7 @@ app.get('/api/websites',
   async (req, res) => {
     try {
       const result = await websiteDao.getWebsiteName();
-      if (result.error)
-        res.status(404).json(result);
-      else
-        res.json(result);
+      res.json(result);
     } catch (err) {
       res.status(500).json({ error: `Database error during the get of website name : ${err} ` });
     }
@@ -367,6 +458,21 @@ app.put('/api/websites/:name',
         res.json(result);
     } catch (err) {
       res.status(500).json({ error: `Database error during the update of website name : ${err} ` });
+    }
+  }
+);
+
+/*** Images APIs ***/
+
+// GET /api/images
+// Get all the images relative path
+app.get('/api/images',
+  async (req, res) => {
+    try {
+      const result = await imagesDao.getAllImages();
+      res.json(result);
+    } catch (err) {
+      res.status(500).json({ error: `Database error during the get of all images : ${err} ` });
     }
   }
 );

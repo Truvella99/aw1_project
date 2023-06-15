@@ -4,3 +4,36 @@
   right:1%;
   border-radius: 50%;
 }
+
+.icons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bi {
+  margin-left: 5%;
+  margin-right: 5%;
+}
+
+.custom-cursor {
+  cursor: grab;
+}
+
+/*.custom-cursor:active {
+  cursor: grabbing;
+}*/
+
+.blockListPageForm {
+  margin-top: 5%;
+}
+
+.buttonsPageForm {
+  position: fixed;
+  top:90%;
+  left:75%;
+}
+
+.buttonsPageForm Button {
+  margin-right: 5%;
+}

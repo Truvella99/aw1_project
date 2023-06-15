@@ -1,7 +1,7 @@
 import { Form, Button, Alert, Container, Row, Col } from 'react-bootstrap';
 import { useState,useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HandleErrorContext, SetUserContext } from "../App";
+import { HandleErrorContext, SetUserContext,SetDirtyContext } from "../App";
 import API from '../API';
 import validator from 'validator';
 
@@ -11,6 +11,8 @@ function LoginForm(props) {
   const [password, setPassword] = useState('pass');
   // props to set the user state after successfully logged in
   const setUser = useContext(SetUserContext);
+  // contest of setDirty
+  const setDirty = useContext(SetDirtyContext);
   // error message state for handling errors
   const HandleError = useContext(HandleErrorContext);
   // not showing Login button of the navbar if we have already opened the login form
@@ -23,6 +25,8 @@ function LoginForm(props) {
       .then( user => {
         // login successfull, remove eventual error message and set user state
         setUser(user);
+        // refresh data
+        setDirty(true);
       })
       .catch(err => {
         // Error, display generic error message
@@ -30,12 +34,20 @@ function LoginForm(props) {
       })
   }
   
+  const goHome = () => {
+    navigate('/');
+    setInForm(false);
+    // refresh data
+    setDirty(true);
+  };
+
   const handleSubmit = (event) => {
     event.preventDefault();
+    // make reappear the ogin button on top of the navbar
     setInForm(false);
     //setErrorMessage('');
     const credentials = { username: email, password: password };
-    // VALIDATION
+    // FORM VALIDATION
     let valid = true;
     if (email === '' || password === '' || !validator.isEmail(email))
       valid = false;
@@ -72,7 +84,7 @@ function LoginForm(props) {
                           <Form.Control type='password' value={password} onChange={ev => setPassword(ev.target.value)} />
                       </Form.Group>
                       <Button className='my-2' type='submit'>Login</Button>
-                      <Button className='my-2 mx-2' variant='danger' onClick={()=>{navigate('/'); setInForm(false);}}>Cancel</Button>
+                      <Button className='my-2 mx-2' variant='danger' onClick={()=>goHome()}>Cancel</Button>
                   </Form>
               </Col>
               <Col xs={3}></Col>

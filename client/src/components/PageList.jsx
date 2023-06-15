@@ -1,7 +1,7 @@
-import { Table,Button } from 'react-bootstrap';
+import { Table,Button,Dropdown } from 'react-bootstrap';
 import { Link,useNavigate } from 'react-router-dom';
 import { useContext } from 'react';
-import { UserContext } from '../App';
+import { UserContext,SetDirtyContext } from '../App';
 import dayjs from 'dayjs';
 
 // heading array to map the table headings easily
@@ -14,8 +14,6 @@ function ListOfPages(props) {
   let pageList = props.pageList;
   // props for filter only by published pages (true = front office) or not filter (false = backoffice)
   const front_office = props.front_office;
-  // props for the bottom button in order to move across the offices
-  const ChangeOffice = props.ChangeOffice;
   // props to delete a page
   const deletePage = props.deletePage;
 
@@ -28,9 +26,6 @@ function ListOfPages(props) {
         }
         return false;
     });
-  } else if (!user.id) {
-    // if not authenticated, avoid to show the list in case you edit the url
-    pageList = [];
   }
   
   return (
@@ -50,7 +45,7 @@ function ListOfPages(props) {
       </tbody>
     </Table>
     {/*Show the button only if authenticated*/}
-    {user.id ? <><ChangeButton ChangeOffice={ChangeOffice}/><AddButton/></> : ''}
+    {user.id ? <><ChangeButton front_office={front_office}/><AddButton/></> : ''}
     </>
   );
 }
@@ -58,20 +53,27 @@ function ListOfPages(props) {
 function PageElement(props) {
   // current logged in user, passed through usecontext
   const user = useContext(UserContext);
+  // navigate to view/edit the page
+  const navigate = useNavigate();
+  // setDirty state shared with useContext hook
+  const setDirty = useContext(SetDirtyContext);
+  // isAdmin property of the user
+  const isAdmin = user.isAdmin;
   // single page element, used to populate the component
   const page = props.page;
   // function to delete a Page
   function deletePage() {
     props.deletePage(page.id);
   }
+  
   return (
     <tr key={page.id}>
       <td>
-        {(user.id === page.userId || user.isAdmin) ? <i className="bi bi-trash-fill" onClick={() => deletePage()} /> : ''}
+        {(user.id === page.userId || user.isAdmin) ? <Link><i className="bi bi-trash-fill" onClick={() => deletePage()}/></Link> : ''}
         {'\t'}
-        {(user.id === page.userId || user.isAdmin) ? <Link to={`/pages/edit/${page.id}`}><i className="bi bi-pencil-fill" /></Link> : ''}
+        {(user.id === page.userId || user.isAdmin) ? <Link to={`/pages/edit/${page.id}`}><i className="bi bi-pencil-fill" onClick={() => {setDirty(true)}} /></Link> : ''}
         {'\t'}
-        <Link to={`/pages/view/${page.id}`}><i className="bi bi-eye-fill" /></Link>
+        <Link to={`/pages/view/${page.id}`}><i className="bi bi-eye-fill" onClick={() => {setDirty(true)}}/></Link>
       </td>
       <td>{page.username}</td>
       <td>{page.title}</td>
@@ -82,13 +84,24 @@ function PageElement(props) {
 }
 
 function ChangeButton(props) {
-  // props.ChangeOffice: url to move to
-  // navigate to return to props.ChangeOffice
+  // navigate to return to props.front_office
   const navigate = useNavigate();
+  // setDirty state shared with useContext hook
+  const setDirty = useContext(SetDirtyContext);
+  // props.front_office: use to undestand the url to move to
+  const front_office = props.front_office;
   // content: compose the button test 
-  const content = (props.ChangeOffice.includes('backoffice') ? 'Back Office' : 'Front Office');
+  const content = (front_office ? 'Back Office' : 'Front Office');
+  // function to change office
+  const change_office = () => {
+    const url = (front_office ? '/backoffice' : '/');
+    navigate(`${url}`);
+    // refresh data
+    setDirty(true);
+  };
+
   return (
-    <Button className='my-2 mx-2' variant='success' onClick={()=>navigate(`${props.ChangeOffice}`)}>Go To {content}</Button>
+    <Button className='my-2 mx-2' variant='success' onClick={()=>change_office()}>Go To {content}</Button>
   );
 }
 

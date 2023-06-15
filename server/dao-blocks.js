@@ -91,13 +91,11 @@ exports.updateBlock = (blockId,block) => {
 // This function deletes an existing block given its id.
 exports.deleteAllPageBlocks = (pageId) => {
     return new Promise((resolve, reject) => {
-        console.log("pageid" + pageId);
         const sql = 'DELETE FROM blocks WHERE pageId=?';
         db.run(sql, [pageId], function (err) {
             if (err) {
                 reject(err);
             }
-            console.log(this.changes);
             if (this.changes === 0)
                 resolve({ error: 'No blocks deleted.' });
             else

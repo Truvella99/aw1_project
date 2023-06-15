@@ -67,6 +67,7 @@
     Request body: An object representing a page and the associated blocks (Content-Type: `application/json`).
     ```
     {
+        "userId": 1,
         "title": "Pagina1",
         "creationDate": "2023-02-28",
         "publicationDate": "2023-02-28",
@@ -108,6 +109,7 @@
     ```
     {
       "id": 1,
+      "userId": 1,
       "title": "pages1",
       "creationDate": "2023-02-28",
       "blocks": [
@@ -213,8 +215,22 @@
     Response: `200 OK` (success) or `500 Internal Server Error` (generic error).
 
     Response body: _None_
+- GET `/api/authors`
+  - Description: Get All The Authors of The Application (cambiare solo admin o aotenticato nel caso li faccio comparire solo in add/edit pagina)
 
+    Request body: _None_ 
 
+    Response: `200 OK` (success) or `500 Internal Server Error` (generic error).
+
+    Response body:
+    ```
+    [{
+      "id": 2,
+      "username": "Giorgio"
+    },
+    ...
+    ]
+    ```
 
 ### WEBSITE API
 - GET `/api/websites`
@@ -243,7 +259,26 @@
         "name": "NEWNAME",
     }
     ``` 
+### IMAGES API
+- GET `/api/images`
+  - Description: Get all the images relative path.
 
+    Request body: _None_
+
+    Response: `200 OK` (success) or `500 Internal Server Error` (generic error).
+
+    Response body: An object, describing all the images name.
+    ```
+    [
+      {
+        "name": "image1.jpg"
+      },
+      {
+        "name": "image2.jpg"
+      },
+      ...
+    ]
+    ``` 
 ## Database Tables
 
 - Table `pages` that contains:
@@ -267,19 +302,21 @@
   - `salt`: salt of the user, used for unique hashing 
 - Table `website` that contains:
   - `name`: name of the website, editable by an Admin
+- Table `images` that contains:
+  - `name`: name of the image
 
 ## Main React Components
 
 - `NavBar` (in `components/Navbar.jsx`): navbar component used to display the website name, along with eventual change name button and user information
-- `ListOfPages` (in `*.jsx`): component used to display the list of all pages (published in frontoffice, all in backoffice)
-- `PageElement` (in `*.jsx`): component used to display the single page in the list of all pages (published in frontoffice, all in backoffice)
-- `AddButton` (in `*.jsx`): button to add a new page (in the backoffice)
+- `ListOfPages` (in `components/PageList.jsx`): component used to display the list of all pages (published in frontoffice, all in backoffice)
+- `PageElement` (in `components/PageList.jsx`): component used to display the single page in the list of all pages (published in frontoffice, all in backoffice)
+- `AddButton` (in `components/PageList.jsx`): button to add a new page (in the backoffice)
 - `LoginForm` (in `components/AuthComponents.jsx`): component used to display the login form, necessary to do the login
-- `PageComponent` (in `*.jsx`): component used to display the single page in detail
-- `PageContent` (in `*.jsx`): component used to display all the blocks inside a page, when viewing the page in detail
-- `Header` (in `*.jsx`): component used to display blocks of type Header, inside the PageContent
-- `Paragraph` (in `*.jsx`): component used to display blocks of type Paragraph, inside the PageContent
-- `Image` (in `*.jsx`): component used to display blocks of type Image, inside the PageContent
+- `PageComponent` (in `components/PageDetails.jsx`): component used to display the single page in detail
+- `PageContent` (in `components/PageDetails.jsx`): component used to display all the blocks inside a page, when viewing the page in detail
+- `Header` (in `components/PageDetails.jsx`): component used to display blocks of type Header, inside the PageContent
+- `Paragraph` (in `components/PageDetails.jsx`): component used to display blocks of type Paragraph, inside the PageContent
+- `Image` (in `components/PageDetails.jsx`): component used to display blocks of type Image, inside the PageContent
 - `BlockManagement` (in `*.jsx`): component used to add new block of various types and select new image when editing a `Image` type block.
 
 (only _main_ components, minor ones may be skipped)

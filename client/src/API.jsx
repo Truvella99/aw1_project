@@ -2,6 +2,8 @@ import dayjs from "dayjs";
 
 const SERVER_URL = 'http://localhost:3001/api';
 
+/*** Users APIs ***/
+
 /**
  * This function wants username and password inside a "credentials" object.
  * It executes the log-in.
@@ -75,6 +77,27 @@ async function logOut() {
     }
 };
 
+/**
+ * This function is used to retrieve all the authors of the application
+ * It returns a JSON object with the authors
+ */
+async function getAuthors() {
+  const response = await fetch(SERVER_URL + '/authors', {
+    // this parameter specifies that authentication cookie must be forwared
+    credentials: 'include'
+  }).catch(() => {throw {error: "Connection Error"}});
+  if (response.ok) {
+    // 200 status code, return the object
+    const authors = await response.json();
+    return authors;
+  } else {
+    // json object provided by the server with the error
+    const error = await response.json();
+    throw error;
+  }
+};
+
+/*** PAGES API ***/
 
 /**
  * Getting from the server side and returning the list of pages.
@@ -109,25 +132,17 @@ async function getPagesbyId(pageId) {
   const response = await fetch(SERVER_URL + `/pages/${pageId}`).catch(() => { throw { error: "Connection Error" } });
   if (response.ok) {
     // 200 status code, parse and return the object
-    const page_json = await response.json();
-    const page = {
-      id: page_json.id,
-      userId: page_json.userId,
-      username: page.username,
-      title: page_json.title,
-      creationDate: dayjs(page_json.creationDate),
-      publicationDate: dayjs(page_json.publicationDate)
+    const response_page = await response.json();
+    let page = {
+      id: response_page.id,
+      userId: response_page.userId,
+      username: response_page.username,
+      title: response_page.title,
+      creationDate: dayjs(response_page.creationDate),
+      publicationDate: dayjs(response_page.publicationDate)
     };
-    page.blocks = page_json.blocks.map((block) => {
-      return (
-        {
-          id: block.id,
-          pageId: block.pageId,
-          type: block.type,
-          content: block.content,
-          blockOrder: block.blockOrder
-        })
-    });
+
+    page.blocks = response_page.blocks;
     return page;
   } else {
     // json object provided by the server with the error
@@ -146,28 +161,20 @@ async function createPage(page) {
       'Content-Type': 'application/json',
     },
     credentials: 'include',  // this parameter specifies that authentication cookie must be forwared
-    body: JSON.stringify(Object.assign({}, { title: page.title, creationDate: page.creationDate.format("YYYY-MM-DD"), publicationDate: (page.publicationDate ? page.publicationDate.format("YYYY-MM-DD") : undefined), blocks: page.blocks })),
+    body: JSON.stringify(Object.assign({}, { userId: page.userId, title: page.title, creationDate: page.creationDate.format("YYYY-MM-DD"), publicationDate: (page.publicationDate ? page.publicationDate.format("YYYY-MM-DD") : undefined), blocks: page.blocks })),
   }).catch(() => { throw { error: "Connection Error" } });
   if (response.ok) {
     // 200 status code, parse and return the object
-    const page_json = await response.json();
+    const response_page = await response.json();
     const page = {
-      id: page_json.id,
-      userId: page_json.userId,
-      title: page_json.title,
-      creationDate: dayjs(page_json.creationDate),
-      publicationDate: dayjs(page_json.publicationDate)
+      id: response_page.id,
+      userId: response_page.userId,
+      title: response_page.title,
+      creationDate: dayjs(response_page.creationDate),
+      publicationDate: dayjs(response_page.publicationDate)
     };
-    page.blocks = page_json.blocks.map((block) => {
-      return (
-        {
-          id: block.id,
-          pageId: block.pageId,
-          type: block.type,
-          content: block.content,
-          blockOrder: block.blockOrder
-        })
-    });
+    
+    page.blocks = response_page.blocks;
     return page;
   } else {
     // json object provided by the server with the error
@@ -186,28 +193,20 @@ async function updatePage(page, pageId) {
       'Content-Type': 'application/json',
     },
     credentials: 'include',  // this parameter specifies that authentication cookie must be forwared
-    body: JSON.stringify(Object.assign({}, { id: page.id, title: page.title, creationDate: page.creationDate.format("YYYY-MM-DD"), publicationDate: (page.publicationDate ? page.publicationDate.format("YYYY-MM-DD") : undefined), blocks: page.blocks })),
+    body: JSON.stringify(Object.assign({}, { id: page.id, userId: page.userId, title: page.title, creationDate: page.creationDate.format("YYYY-MM-DD"), publicationDate: (page.publicationDate ? page.publicationDate.format("YYYY-MM-DD") : undefined), blocks: page.blocks })),
   }).catch(() => { throw { error: "Connection Error" } });
   if (response.ok) {
     // 200 status code, parse and return the object
-    const page_json = await response.json();
+    const response_page = await response.json();
     const page = {
-      id: page_json.id,
-      userId: page_json.userId,
-      title: page_json.title,
-      creationDate: dayjs(page_json.creationDate),
-      publicationDate: dayjs(page_json.publicationDate)
+      id: response_page.id,
+      userId: response_page.userId,
+      title: response_page.title,
+      creationDate: dayjs(response_page.creationDate),
+      publicationDate: dayjs(response_page.publicationDate)
     };
-    page.blocks = page_json.blocks.map((block) => {
-      return (
-        {
-          id: block.id,
-          pageId: block.pageId,
-          type: block.type,
-          content: block.content,
-          blockOrder: block.blockOrder
-        })
-    });
+    
+    page.blocks = response_page.blocks;
     return page;
   } else {
     // json object provided by the server with the error
@@ -235,6 +234,8 @@ async function deletePage(pageId) {
   }
 }
 
+/*** Website APIs ***/
+
 
 /**
  * Getting from the server the website name.
@@ -244,9 +245,8 @@ async function getWebsiteName() {
   if (response.ok) {
     // 200 status code, parse and return the object
     const website = await response.json();
-    return {
-      name: website.name
-    };
+
+    return website;
   } else {
     // json object provided by the server with the error
     const error = await response.json();
@@ -265,9 +265,8 @@ async function updateWebsiteName(new_name) {
   if (response.ok) {
     // 200 status code, parse and return the object
     const website = await response.json();
-    return {
-      name: website.name
-    };
+    
+    return website;
   } else {
     // json object provided by the server with the error
     const error = await response.json();
@@ -275,6 +274,24 @@ async function updateWebsiteName(new_name) {
   }
 }
 
+/*** Images APIs ***/
 
-const API = {logIn, getUserInfo, logOut, getPages, getPagesbyId, createPage, updatePage, deletePage, getWebsiteName, updateWebsiteName};
+/**
+ * Getting from the server all the images relative path
+*/
+async function getAllImages() {
+  const response = await fetch(SERVER_URL + '/images').catch(() => { throw { error: "Connection Error" } });
+  if (response.ok) {
+    // 200 status code, parse and return the object
+    const images = await response.json();
+    
+    return images;
+  } else {
+    // json object provided by the server with the error
+    const error = await response.json();
+    throw error;
+  }
+}
+
+const API = {logIn, getUserInfo, logOut, getAuthors, getPages, getPagesbyId, createPage, updatePage, deletePage, getWebsiteName, updateWebsiteName, getAllImages};
 export default API;

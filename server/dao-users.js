@@ -5,7 +5,7 @@
 const db = require('./db');
 const crypto = require('crypto');
 
-// NON USATA
+
 // This function returns user's information given its id.
 exports.getUserById = (id) => {
   return new Promise((resolve, reject) => {
@@ -49,4 +49,19 @@ exports.getUser = (email, password) => {
       }
     });
   });
+};
+
+// get all users, so all authors name for letting the admin change the author
+exports.getAuthors = () => {
+  return new Promise((resolve, reject) => {
+    const sql = 'SELECT id,username FROM USERS';
+    db.all(sql, [], (err, rows) => {
+        if (err)
+            reject(err);
+        else {
+            const users = rows.map(user => Object.assign({}, user));
+            resolve(users);
+        }
+    });
+});
 };
