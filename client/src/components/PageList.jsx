@@ -1,11 +1,11 @@
-import { Table,Button,Dropdown } from 'react-bootstrap';
-import { Link,useNavigate } from 'react-router-dom';
+import { Table, Button, Dropdown } from 'react-bootstrap';
+import { Link, useNavigate } from 'react-router-dom';
 import { useContext } from 'react';
-import { UserContext,SetDirtyContext } from '../App';
+import { UserContext, SetDirtyContext } from './Contexts';
 import dayjs from 'dayjs';
 
 // heading array to map the table headings easily
-const headings = ["","Author","Title","Creation Date","Publication Date"];
+const headings = ["", "Author", "Title", "Creation Date", "Publication Date"];
 
 function ListOfPages(props) {
   // user state shared with useContext hook
@@ -20,32 +20,32 @@ function ListOfPages(props) {
   if (front_office) {
     // filter and obtain only publicated pages
     pageList = pageList.filter((page) => {
-        const today = dayjs();
-        if (page.publicationDate.isBefore(today,'day') || page.publicationDate.isSame(today,'day')) {
-            return true;
-        }
-        return false;
+      const today = dayjs();
+      if (page.publicationDate.isBefore(today, 'day') || page.publicationDate.isSame(today, 'day')) {
+        return true;
+      }
+      return false;
     });
   }
-  
+
   return (
     <>
-    <Table striped bordered hover>
-      <thead>
-        <tr>
-          {headings.map((heading,index) => {
-            return <th key={index}>{heading}</th>
+      <Table striped bordered hover>
+        <thead>
+          <tr>
+            {headings.map((heading, index) => {
+              return <th key={index}>{heading}</th>
+            })}
+          </tr>
+        </thead>
+        <tbody>
+          {pageList.map((page) => {
+            return <PageElement front_office={front_office} key={page.id} page={page} deletePage={deletePage} />
           })}
-        </tr>
-      </thead>
-      <tbody>
-        {pageList.map((page) => {
-            return <PageElement key={page.id} page={page} deletePage={deletePage}/>
-        })}
-      </tbody>
-    </Table>
-    {/*Show the button only if authenticated*/}
-    {user.id ? <><ChangeButton front_office={front_office}/><AddButton/></> : ''}
+        </tbody>
+      </Table>
+      {/*Show the button only if authenticated*/}
+      {user.id ? <><ChangeButton front_office={front_office} /><AddButton /></> : ''}
     </>
   );
 }
@@ -61,19 +61,25 @@ function PageElement(props) {
   const isAdmin = user.isAdmin;
   // single page element, used to populate the component
   const page = props.page;
+  // props for display delete and edit buttons (false = front office) or not (true = backoffice)
+  const front_office = props.front_office;
+
   // function to delete a Page
   function deletePage() {
     props.deletePage(page.id);
   }
-  
+
+  // condition on which display delete and edit buttons
+  const condition = (user.id === page.userId || user.isAdmin) && !front_office;
+
   return (
     <tr key={page.id}>
       <td>
-        {(user.id === page.userId || user.isAdmin) ? <Link><i className="bi bi-trash-fill" onClick={() => deletePage()}/></Link> : ''}
+        {condition ? <Link><i className="bi bi-trash-fill" onClick={() => deletePage()} /></Link> : ''}
         {'\t'}
-        {(user.id === page.userId || user.isAdmin) ? <Link to={`/pages/edit/${page.id}`}><i className="bi bi-pencil-fill" onClick={() => {setDirty(true)}} /></Link> : ''}
+        {condition ? <Link to={`/pages/edit/${page.id}`}><i className="bi bi-pencil-fill" onClick={() => { setDirty(true) }} /></Link> : ''}
         {'\t'}
-        <Link to={`/pages/view/${page.id}`}><i className="bi bi-eye-fill" onClick={() => {setDirty(true)}}/></Link>
+        <Link to={`/pages/view/${page.id}`}><i className="bi bi-eye-fill" onClick={() => { setDirty(true) }} /></Link>
       </td>
       <td>{page.username}</td>
       <td>{page.title}</td>
@@ -101,7 +107,7 @@ function ChangeButton(props) {
   };
 
   return (
-    <Button className='my-2 mx-2' variant='success' onClick={()=>change_office()}>Go To {content}</Button>
+    <Button className='my-2 mx-2' variant='success' onClick={() => change_office()}>Go To {content}</Button>
   );
 }
 
@@ -111,4 +117,4 @@ function AddButton(props) {
   );
 }
 
-export {ListOfPages};
+export { ListOfPages };

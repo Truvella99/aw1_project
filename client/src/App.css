@@ -20,18 +20,26 @@
   cursor: grab;
 }
 
-/*.custom-cursor:active {
-  cursor: grabbing;
-}*/
-
-.blockListPageForm {
+.PageContent {
   margin-top: 5%;
 }
 
+.BlockFormContent {
+  margin-top: 5%;
+  display: grid;
+  place-items: center;
+}
+
+.blockList {
+  overflow: 'auto';
+  max-height: '600px';
+  background-color: rgb(235, 233, 233) !important;
+}
+
 .buttonsPageForm {
-  position: fixed;
-  top:90%;
-  left:75%;
+  position:sticky;
+  text-align: right;
+  margin-top: 5%;
 }
 
 .buttonsPageForm Button {

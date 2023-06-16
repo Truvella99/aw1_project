@@ -5,13 +5,13 @@ const express = require('express');
 const morgan = require('morgan');                                  // logging middleware
 const cors = require('cors');
 const dayjs = require('dayjs');
-const { param, check, validationResult, } = require('express-validator'); // validation middleware
-
+const { param, check, validationResult } = require('express-validator'); // validation middleware
+const fs = require('fs');
+const path = require('path');
 const blocksDao = require('./dao-blocks'); // module for accessing the blocks table in the DB
 const pagesDao = require('./dao-pages'); // module for accessing the pages table in the DB
 const usersDao = require('./dao-users'); // module for accessing the users table in the DB
 const websiteDao = require('./dao-website'); // module for accessing the website table in the DB
-const imagesDao = require('./dao-images'); // module for accessing the images table in the DB
 
 /*** init express and set-up the middlewares ***/
 const app = express();
@@ -20,6 +20,20 @@ app.use(express.json());
 
 // static middleware to serve static contents through express
 app.use(express.static('./public'));
+const staticFolderPath = path.join(__dirname, 'public/images');
+const getImagesName = () => {
+  return new Promise((resolve, reject) => {
+    fs.readdir(staticFolderPath, (err, files) => {
+      if (err) {
+        reject({error: `Error reading directory for getting all images: ${err}`});
+        return;
+      }
+
+      // files contains all the names of the images inside the public/images folder
+      resolve(files);
+    });
+  });
+};
 /**
  * The "delay" middleware introduces some delay in server responses. To change the delay change the value of "delayTime" (specified in milliseconds).
  * This middleware could be useful for debug purposes, to enabling it uncomment the following lines.
@@ -250,12 +264,14 @@ app.post('/api/pages', isLoggedIn,
       }
 
       // check that the blocks of type Image have a content that is into the image table
-      const images = await imagesDao.getAllImages();
+      const images = await getImagesName();
+      if (images.error)
+        return res.status(404).json(images);
 
       let wrongImageContent;
 
       blocks.forEach((block) => {
-          if (block.type === "Image" && !images.some(image => image.name === block.content)) {
+          if (block.type === "Image" && !images.some(image => image === block.content)) {
             wrongImageContent = block.content;
           }
       });
@@ -307,8 +323,8 @@ app.post('/api/pages/:id',
     if (errors.length !== 0) {
       return res.status(422).json({ error: errors.join(", ") }); // error message is a single string with all error joined together
     }
-
-    if (req.body.id !== Number(req.params.id)) {
+    
+    if (req.body.id != req.params.id) {
       return res.status(422).json({ error: 'URL and body id mismatch' });
     }
 
@@ -358,12 +374,14 @@ app.post('/api/pages/:id',
       }
 
       // check that the blocks of type Image have a content that is into the image table
-      const images = await imagesDao.getAllImages();
+      const images = await getImagesName();
+      if (images.error)
+        return res.status(404).json(images);
 
       let wrongImageContent;
       
       blocks.forEach((block) => {
-          if (block.type === "Image" && !images.some(image => image.name === block.content)) {
+          if (block.type === "Image" && !images.some(image => image === block.content)) {
             wrongImageContent = block.content;
           }
       });
@@ -469,10 +487,10 @@ app.put('/api/websites/:name',
 app.get('/api/images',
   async (req, res) => {
     try {
-      const result = await imagesDao.getAllImages();
+      const result = await getImagesName();
       res.json(result);
     } catch (err) {
-      res.status(500).json({ error: `Database error during the get of all images : ${err} ` });
+      res.status(500).json(err);
     }
   }
 );

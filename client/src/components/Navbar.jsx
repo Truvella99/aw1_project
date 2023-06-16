@@ -1,7 +1,7 @@
 import { useContext,useState } from "react";
 import { Navbar, Container, Row, Col, Button,Alert } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { UserContext,SetUserContext,HandleErrorContext,SetDirtyContext } from "../App";
+import { UserContext,SetUserContext,HandleErrorContext,SetDirtyContext } from './Contexts';
 import API from "../API";
 
 function NavHeader(props) {
@@ -21,8 +21,8 @@ function NavHeader(props) {
     const isAdmin = (user.isAdmin === 1);
     // error message state for handling errors
     const HandleError = useContext(HandleErrorContext);
-    // name of the website state
-    const {websiteName} = props;
+    // name of the website state and state that handle the initial attempt to see if a user is already logged in
+    const {websiteName,setTryLogIn} = props;
     // state for edit the websiteName field
     const [editable,setEditable] = useState(false);
     // state for the current value of website name during the editing
@@ -40,13 +40,14 @@ function NavHeader(props) {
         API.logOut()
             .then(user => {
                 setUser({});
+                setTryLogIn(true);
                 // refresh data
                 setDirty(true);
                 navigate('/');
             })
             .catch(err => {
                 // NB: Generic error message, should not give additional info (e.g., if user exists etc.)
-                HandleError(err.message);
+                HandleError(err);
             })
     };
     

@@ -1,6 +1,5 @@
 import dayjs from "dayjs";
-
-const SERVER_URL = 'http://localhost:3001/api';
+import { SERVER_URL } from "./components/Costants";
 
 /*** Users APIs ***/
 
@@ -133,17 +132,8 @@ async function getPagesbyId(pageId) {
   if (response.ok) {
     // 200 status code, parse and return the object
     const response_page = await response.json();
-    let page = {
-      id: response_page.id,
-      userId: response_page.userId,
-      username: response_page.username,
-      title: response_page.title,
-      creationDate: dayjs(response_page.creationDate),
-      publicationDate: dayjs(response_page.publicationDate)
-    };
-
-    page.blocks = response_page.blocks;
-    return page;
+    
+    return response_page;
   } else {
     // json object provided by the server with the error
     const error = await response.json();
@@ -161,21 +151,12 @@ async function createPage(page) {
       'Content-Type': 'application/json',
     },
     credentials: 'include',  // this parameter specifies that authentication cookie must be forwared
-    body: JSON.stringify(Object.assign({}, { userId: page.userId, title: page.title, creationDate: page.creationDate.format("YYYY-MM-DD"), publicationDate: (page.publicationDate ? page.publicationDate.format("YYYY-MM-DD") : undefined), blocks: page.blocks })),
+    body: JSON.stringify(Object.assign({}, { userId: page.userId, title: page.title, creationDate: page.creationDate, publicationDate: page.publicationDate, blocks: page.blocks })),
   }).catch(() => { throw { error: "Connection Error" } });
   if (response.ok) {
     // 200 status code, parse and return the object
     const response_page = await response.json();
-    const page = {
-      id: response_page.id,
-      userId: response_page.userId,
-      title: response_page.title,
-      creationDate: dayjs(response_page.creationDate),
-      publicationDate: dayjs(response_page.publicationDate)
-    };
-    
-    page.blocks = response_page.blocks;
-    return page;
+    return response_page;
   } else {
     // json object provided by the server with the error
     const error = await response.json();
@@ -193,21 +174,12 @@ async function updatePage(page, pageId) {
       'Content-Type': 'application/json',
     },
     credentials: 'include',  // this parameter specifies that authentication cookie must be forwared
-    body: JSON.stringify(Object.assign({}, { id: page.id, userId: page.userId, title: page.title, creationDate: page.creationDate.format("YYYY-MM-DD"), publicationDate: (page.publicationDate ? page.publicationDate.format("YYYY-MM-DD") : undefined), blocks: page.blocks })),
+    body: JSON.stringify(Object.assign({}, { id: page.id, userId: page.userId, title: page.title, creationDate: page.creationDate, publicationDate: page.publicationDate, blocks: page.blocks })),
   }).catch(() => { throw { error: "Connection Error" } });
   if (response.ok) {
     // 200 status code, parse and return the object
     const response_page = await response.json();
-    const page = {
-      id: response_page.id,
-      userId: response_page.userId,
-      title: response_page.title,
-      creationDate: dayjs(response_page.creationDate),
-      publicationDate: dayjs(response_page.publicationDate)
-    };
-    
-    page.blocks = response_page.blocks;
-    return page;
+    return response_page;
   } else {
     // json object provided by the server with the error
     const error = await response.json();

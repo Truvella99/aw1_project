@@ -3,24 +3,14 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import { useState,createContext, useEffect } from 'react'
 import {NavHeader} from './components/Navbar'
 import {LoginForm} from './components/AuthComponents'
-import { BrowserRouter,Routes,Route,Navigate } from 'react-router-dom' ;
+import { BrowserRouter,Routes,Route,Navigate,Link } from 'react-router-dom' ;
 import API from './API';
 import dayjs from 'dayjs';
 import './App.css';
-import { Alert } from 'react-bootstrap';
+import { Alert,Row,Col,Button } from 'react-bootstrap';
 import {ListOfPages} from './components/PageList';
-import {PageComponent} from './components/PageDetails';
-
-// user information shared context
-const UserContext = createContext(null);
-// setuser function shared context
-const SetUserContext = createContext(null);
-// HandleError function shared context
-const HandleErrorContext = createContext(null);
-// setDirty function shared context
-const SetDirtyContext = createContext(null);
-
-export {UserContext,SetUserContext,HandleErrorContext,SetDirtyContext};
+import {PageComponent} from './components/PageComponent';
+import { UserContext,SetUserContext,HandleErrorContext,SetDirtyContext } from './components/Contexts';
 
 function App() {
   // state of the user
@@ -35,6 +25,9 @@ function App() {
   const [errorMessage, setErrorMessage] = useState('');
   // name of the webiste state
   const [websiteName,setWebsiteName] = useState('');
+  // state to try to login for the first time
+  const [trylogin, setTryLogIn] = useState(true);
+
   // loading state TODO
   const [initialLoading,setInitialLoading] = useState(true);
 
@@ -74,8 +67,23 @@ function App() {
         handleError(err);
       }
     } 
+    async function checkAuth() {
+      try {
+        // here you have the user info, if already logged in
+        const user = await API.getUserInfo();
+        //setLoggedIn(true);
+        setUser(user);
+      } catch(err) {
+        // NO need to do anything: user is simply not yet authenticated
+        //handleError(err);
+        setTryLogIn(false);
+      }
+    }
     getAllPages();
     getWebsiteName();
+    if (trylogin) {
+      checkAuth();
+    }
   },[dirty]);
 
 
@@ -119,16 +127,16 @@ function App() {
           <SetUserContext.Provider value={setUser}> {/*Forse non Serve col context*/}
             <HandleErrorContext.Provider value={handleError}>
               <SetDirtyContext.Provider value={setDirty}> {/*Forse non Serve col context*/}
-                <NavHeader inForm={inForm} setInForm={setInForm} websiteName={websiteName} updateWebsiteName={updateWebsiteName}/>
+                <NavHeader inForm={inForm} setInForm={setInForm} websiteName={websiteName} updateWebsiteName={updateWebsiteName} setTryLogIn={setTryLogIn}/>
                 {errorMessage ? <Alert variant='danger' dismissible onClick={() => setErrorMessage('')}>{errorMessage}</Alert> : ''}
                 <Routes>
                   <Route path='/' element={<ListOfPages front_office={true} pageList={pageList} deletePage={deletePage} />} />
                   <Route path='/backoffice' element={user.id ? <ListOfPages front_office={false} pageList={pageList} deletePage={deletePage} /> : <Navigate replace to='/' />} />
                   <Route path='/login' element={user.id ? <Navigate replace to='/backoffice'/> : <LoginForm setInForm={setInForm} />} />
-                  <Route path='/pages/add' element={user.id ? <></> : <Navigate replace to='/'/> }/>
-                  <Route path='/pages/view/:id' element={<PageComponent/>} />
-                  <Route path='/pages/edit/:id' element={user.id ? <></> : <Navigate replace to='/'/> } />
-                  <Route path='*' element={<Navigate replace to='/' />} />
+                  <Route path='/pages/add' element={user.id ? <PageComponent location={'add'}/> : <Navigate replace to='/'/> }/>
+                  <Route path='/pages/view/:id' element={<PageComponent location={'view'}/>} />
+                  <Route path='/pages/edit/:id' element={user.id ? <PageComponent location={'edit'}/> : <Navigate replace to='/'/> } />
+                  <Route path='*' element={<DefaultRoute/>} />
                 </Routes>
               </SetDirtyContext.Provider>
             </HandleErrorContext.Provider>
@@ -137,6 +145,22 @@ function App() {
       </BrowserRouter>
     </>
   )
+}
+
+function DefaultRoute() {
+  return(
+    <>
+      <Row className='icons'>
+        <Col>
+          <h1>Nothing here...</h1>
+          <p>This is not the route you are looking for!</p>
+          <Link to="/">
+            <Button type="button" variant="success" className="btn btn-lg edit-button">Go back to the homepage</Button>
+          </Link>
+        </Col>
+      </Row>
+    </>
+  );
 }
 
 export default App;

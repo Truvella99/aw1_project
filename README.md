@@ -312,11 +312,11 @@
 - `PageElement` (in `components/PageList.jsx`): component used to display the single page in the list of all pages (published in frontoffice, all in backoffice)
 - `AddButton` (in `components/PageList.jsx`): button to add a new page (in the backoffice)
 - `LoginForm` (in `components/AuthComponents.jsx`): component used to display the login form, necessary to do the login
-- `PageComponent` (in `components/PageDetails.jsx`): component used to display the single page in detail
-- `PageContent` (in `components/PageDetails.jsx`): component used to display all the blocks inside a page, when viewing the page in detail
-- `Header` (in `components/PageDetails.jsx`): component used to display blocks of type Header, inside the PageContent
-- `Paragraph` (in `components/PageDetails.jsx`): component used to display blocks of type Paragraph, inside the PageContent
-- `Image` (in `components/PageDetails.jsx`): component used to display blocks of type Image, inside the PageContent
+- `PageComponent` (in `components/PageComponent.jsx`): component used to display the single page in detail
+- `PageContent` (in `components/PageContent.jsx`): component used to display all the blocks inside a page, when viewing the page in detail
+- `Header` (in `components/Blocks.jsx`): component used to display blocks of type Header, inside the PageContent
+- `Paragraph` (in `components/Blocks.jsx`): component used to display blocks of type Paragraph, inside the PageContent
+- `Image` (in `components/Blocks.jsx`): component used to display blocks of type Image, inside the PageContent
 - `BlockManagement` (in `*.jsx`): component used to add new block of various types and select new image when editing a `Image` type block.
 
 (only _main_ components, minor ones may be skipped)
