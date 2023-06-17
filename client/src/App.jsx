@@ -7,7 +7,7 @@ import { BrowserRouter,Routes,Route,Navigate,Link } from 'react-router-dom' ;
 import API from './API';
 import dayjs from 'dayjs';
 import './App.css';
-import { Alert,Row,Col,Button } from 'react-bootstrap';
+import { Alert,Row,Col,Button, Container } from 'react-bootstrap';
 import {ListOfPages} from './components/PageList';
 import {PageComponent} from './components/PageComponent';
 import { UserContext,SetUserContext,HandleErrorContext,SetDirtyContext } from './components/Contexts';
@@ -18,15 +18,13 @@ function App() {
   // list of pages in the application
   const [pageList, setPageList] = useState([]);
   // dirty state to refresh content
-  const [dirty,setDirty] = useState(false);
+  const [dirty,setDirty] = useState(true);
   // not showing Login button of the navbar if we have already opened the login form
   const [inForm,setInForm] = useState(false);
   // error message state for handling errors
   const [errorMessage, setErrorMessage] = useState('');
   // name of the webiste state
   const [websiteName,setWebsiteName] = useState('');
-  // state to try to login for the first time
-  const [trylogin, setTryLogIn] = useState(true);
 
   // loading state TODO
   const [initialLoading,setInitialLoading] = useState(true);
@@ -46,11 +44,18 @@ function App() {
     setDirty(true);
   }
 
-  // useeffect to retrieve all data related to the pages, the website name and the authors
+  // useeffect to retrieve all data related to the pages and the website name
   useEffect(() => {
     async function getAllPages() {
       try {
-        const pages = await API.getPages();
+        let pages;
+        if (user.id) {
+          // get backoffice pages
+          pages = await API.getPagesBackOffice();
+        } else {
+          // get frontoffice pages
+          pages = await API.getPagesFrontOffice();
+        }
         setPageList(pages);
         setDirty(false);
         //setInitialLoading(false);
@@ -67,6 +72,14 @@ function App() {
         handleError(err);
       }
     } 
+    if (dirty) {
+      getAllPages();
+      getWebsiteName();
+    }
+  },[dirty]);
+
+  //useEffect to try to retrieve user info (if logged in or not), executed only the first time when mounting the component
+  useEffect(() => {
     async function checkAuth() {
       try {
         // here you have the user info, if already logged in
@@ -76,16 +89,10 @@ function App() {
       } catch(err) {
         // NO need to do anything: user is simply not yet authenticated
         //handleError(err);
-        setTryLogIn(false);
       }
     }
-    getAllPages();
-    getWebsiteName();
-    if (trylogin) {
-      checkAuth();
-    }
-  },[dirty]);
-
+    checkAuth();
+  },[]);
 
   // function to update the website name
   function updateWebsiteName(new_name) {
@@ -127,7 +134,7 @@ function App() {
           <SetUserContext.Provider value={setUser}> {/*Forse non Serve col context*/}
             <HandleErrorContext.Provider value={handleError}>
               <SetDirtyContext.Provider value={setDirty}> {/*Forse non Serve col context*/}
-                <NavHeader inForm={inForm} setInForm={setInForm} websiteName={websiteName} updateWebsiteName={updateWebsiteName} setTryLogIn={setTryLogIn}/>
+                <NavHeader inForm={inForm} setInForm={setInForm} websiteName={websiteName} updateWebsiteName={updateWebsiteName}/>
                 {errorMessage ? <Alert variant='danger' dismissible onClick={() => setErrorMessage('')}>{errorMessage}</Alert> : ''}
                 <Routes>
                   <Route path='/' element={<ListOfPages front_office={true} pageList={pageList} deletePage={deletePage} />} />
@@ -138,6 +145,7 @@ function App() {
                   <Route path='/pages/edit/:id' element={user.id ? <PageComponent location={'edit'}/> : <Navigate replace to='/'/> } />
                   <Route path='*' element={<DefaultRoute/>} />
                 </Routes>
+                <Footer/>
               </SetDirtyContext.Provider>
             </HandleErrorContext.Provider>
           </SetUserContext.Provider>
@@ -150,7 +158,7 @@ function App() {
 function DefaultRoute() {
   return(
     <>
-      <Row className='icons'>
+      <Row className='default'>
         <Col>
           <h1>Nothing here...</h1>
           <p>This is not the route you are looking for!</p>
@@ -161,6 +169,16 @@ function DefaultRoute() {
       </Row>
     </>
   );
+}
+
+function Footer() {
+  return(
+      <>  
+          <footer id='footer'>    
+              <p>© Copyright {dayjs().year()} - CMSMALL Gagliardo Domenico (s310454)</p>  
+          </footer>
+      </>
+  )
 }
 
 export default App;

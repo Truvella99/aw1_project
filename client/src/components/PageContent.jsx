@@ -11,8 +11,11 @@ function PageContent(props) {
     const [sourceIndex, setSourceIndex] = useState(undefined);
     // state to save destination item index (the element on which the source element is dropped)
     const [destinationIndex, setDestinationIndex] = useState(undefined);
-
+    // render_components context flag, for render components or not
     const render_components = useContext(render_componentsContext);
+    // state to save the current image to modify
+    const [imageEditBlock,setImageEditBlock] = useState(undefined);
+
     // function to add a block from the blocklist
     function addBlock(block) {
         setBlockList((oldBlockList) => [...oldBlockList, block]);
@@ -85,6 +88,10 @@ function PageContent(props) {
                                     <Container className="blockList">
                                         {blockList.map((block, index) => {
                                             switch (block.type) {
+                                                // use index to map instead of block.id since when adding a new block we have to create a temporary id,
+                                                // (blockList.lenght + 1) that could be in conflict with original block.id. Since here we don't care
+                                                // about block.id we use index (will be the server that will create them (Add page from scratch,
+                                                // Edit page delete them and then recreate them).
                                                 case "Header":
                                                     return <Header className='block' key={block.id} block={block} index={index} />;
                                                     break;
@@ -92,7 +99,7 @@ function PageContent(props) {
                                                     return <Paragraph className='block' key={block.id} block={block} index={index} />;
                                                     break;
                                                 case "Image":
-                                                    return <Image className='block' key={block.id} block={block} index={index} />;
+                                                    return <Image className='block' key={block.id} block={block} index={index} setImageEditBlock={setImageEditBlock}/>;
                                                     break;
                                                 default:
                                                     break;
@@ -101,7 +108,7 @@ function PageContent(props) {
                                     </Container>
                                 </Col>
                                 <Col md={5} className='BlockFormContent'>
-                                    { render_components ? <BlockForm blockList={blockList} addBlock={addBlock} /> : ''}
+                                    { render_components ? <BlockForm imageEditBlock={imageEditBlock} setImageEditBlock={setImageEditBlock} blockList={blockList} addBlock={addBlock} /> : ''}
                                 </Col>
                             </>
                         </saveBlockContext.Provider>

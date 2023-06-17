@@ -14,8 +14,8 @@
 ## API Server
 
 ### PAGES API
-- GET `/api/pages`
-  - Description: Get all the pages for the frontoffice visualization.
+- GET `/api/pages/frontoffice`
+  - Description: Get only-published pages for the frontoffice visualization (no authentication required).
 
     Request body: _None_
 
@@ -34,8 +34,55 @@
     ...
     ]
     ``` 
-- GET `/api/pages/<id>`
-  - Description: Get a specific page, identified by the id `<id>`, along with the associated blocks.
+- GET `/api/pages/backoffice`
+  - Description: Get all the pages for the backoffice visualization (authentication required).
+
+    Request body: _None_
+
+    Response: `200 OK` (success) or `500 Internal Server Error` (generic error).
+
+    Response body: An array of objects, each describing a page.
+    ```
+    [{
+        "id": 1,
+        "userId": 1,
+        "username": "Enrico",
+        "title": "Pagina1",
+        "creationDate": "2023-02-28",
+        "publicationDate": "2023-02-28",
+    },
+    ...
+    ]
+    ``` 
+- GET `/api/pages/frontoffice/<id>`
+  - Description: Get a specific published-only page, identified by the id `<id>`, along with the associated blocks (no authentication required).
+
+    Request body: _None_
+
+    Response: `200 OK` (success) or `404 Not Found` (Page or Block Not Found) or `500 Internal Server Error` (generic error).
+
+    Response body: An object describing a page, with an array of objects, each describing a block.
+    ```
+    {
+        "id": 1,
+        "userId": 1,
+        "username": "Enrico",
+        "title": "Pagina1",
+        "creationDate": "2023-02-28",
+        "publicationDate": "2023-02-28",
+        "blocks" : [{
+            "id": 1,
+            "pageId": 1,
+            "type": "Header",
+            "content": "Ciao Sono Domenico",
+            "blockOrder": "1",
+        },
+        ...
+        ]
+    }
+    ```
+- GET `/api/pages/backoffice/<id>`
+  - Description: Get a specific page, identified by the id `<id>`, along with the associated blocks (authentication required).
 
     Request body: _None_
 
@@ -267,15 +314,11 @@
 
     Response: `200 OK` (success) or `500 Internal Server Error` (generic error).
 
-    Response body: An object, describing all the images name.
+    Response body: An array with each element describing the image file name.
     ```
     [
-      {
-        "name": "image1.jpg"
-      },
-      {
-        "name": "image2.jpg"
-      },
+      "image1.jpg",
+      "image2.jpg",
       ...
     ]
     ``` 
@@ -302,8 +345,6 @@
   - `salt`: salt of the user, used for unique hashing 
 - Table `website` that contains:
   - `name`: name of the website, editable by an Admin
-- Table `images` that contains:
-  - `name`: name of the image
 
 ## Main React Components
 
@@ -317,7 +358,7 @@
 - `Header` (in `components/Blocks.jsx`): component used to display blocks of type Header, inside the PageContent
 - `Paragraph` (in `components/Blocks.jsx`): component used to display blocks of type Paragraph, inside the PageContent
 - `Image` (in `components/Blocks.jsx`): component used to display blocks of type Image, inside the PageContent
-- `BlockManagement` (in `*.jsx`): component used to add new block of various types and select new image when editing a `Image` type block.
+- `BlockForm` (in `BlockManagement.jsx`): component used to add new block of various types and select new image when editing a `Image` type block.
 
 (only _main_ components, minor ones may be skipped)
 

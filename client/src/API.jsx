@@ -99,23 +99,16 @@ async function getAuthors() {
 /*** PAGES API ***/
 
 /**
- * Getting from the server side and returning the list of pages.
+ * Getting from the server side and returning the list of all pages (backoffice).
 */
 
-async function getPages() {
-  const response = await fetch(SERVER_URL + '/pages').catch(() => { throw { error: "Connection Error" } });
+async function getPagesBackOffice() {
+  const response = await fetch(SERVER_URL + '/pages/backoffice', {credentials: 'include'})
+      .catch(() => { throw { error: "Connection Error" } });
   if (response.ok) {
     // 200 status code, parse and return the object
     const pages = await response.json();
-    return pages.map((page) => (
-      {
-        id: page.id,
-        userId: page.userId,
-        username: page.username,
-        title: page.title,
-        creationDate: dayjs(page.creationDate),
-        publicationDate: dayjs(page.publicationDate),
-      }));
+    return pages;
   } else {
     // json object provided by the server with the error
     const error = await response.json();
@@ -124,15 +117,32 @@ async function getPages() {
 }
 
 /**
- * Getting from the server side and returning a specific page, along with the blocks.
+ * Getting from the server side and returning the list of published pages (front office).
 */
 
-async function getPagesbyId(pageId) {
-  const response = await fetch(SERVER_URL + `/pages/${pageId}`).catch(() => { throw { error: "Connection Error" } });
+async function getPagesFrontOffice() {
+  const response = await fetch(SERVER_URL + '/pages/frontoffice').catch(() => { throw { error: "Connection Error" } });
+  if (response.ok) {
+    // 200 status code, parse and return the object
+    const pages = await response.json();
+    return pages;
+  } else {
+    // json object provided by the server with the error
+    const error = await response.json();
+    throw error;
+  }
+}
+
+/**
+ * Getting from the server side and returning a specific page, along with the blocks (backoffice).
+*/
+
+async function getPagesbyIdBackOffice(pageId) {
+  const response = await fetch(SERVER_URL + `/pages/backoffice/${pageId}`, {credentials: 'include'})
+      .catch(() => { throw { error: "Connection Error" } });
   if (response.ok) {
     // 200 status code, parse and return the object
     const response_page = await response.json();
-    
     return response_page;
   } else {
     // json object provided by the server with the error
@@ -140,6 +150,24 @@ async function getPagesbyId(pageId) {
     throw error;
   }
 }
+
+/**
+ * Getting from the server side and returning a specific only-published page, along with the blocks (frontoffice).
+*/
+
+async function getPagesbyIdFrontOffice(pageId) {
+  const response = await fetch(SERVER_URL + `/pages/frontoffice/${pageId}`).catch(() => { throw { error: "Connection Error" } });
+  if (response.ok) {
+    // 200 status code, parse and return the object
+    const response_page = await response.json();
+    return response_page;
+  } else {
+    // json object provided by the server with the error
+    const error = await response.json();
+    throw error;
+  }
+}
+
 
 /**
  * Sending to the server side and saving a specific page, along with the blocks.
@@ -252,7 +280,7 @@ async function updateWebsiteName(new_name) {
  * Getting from the server all the images relative path
 */
 async function getAllImages() {
-  const response = await fetch(SERVER_URL + '/images').catch(() => { throw { error: "Connection Error" } });
+  const response = await fetch(SERVER_URL + '/images', {credentials: 'include'}).catch(() => { throw { error: "Connection Error" } });
   if (response.ok) {
     // 200 status code, parse and return the object
     const images = await response.json();
@@ -265,5 +293,5 @@ async function getAllImages() {
   }
 }
 
-const API = {logIn, getUserInfo, logOut, getAuthors, getPages, getPagesbyId, createPage, updatePage, deletePage, getWebsiteName, updateWebsiteName, getAllImages};
+const API = {logIn, getUserInfo, logOut, getAuthors, getPagesBackOffice, getPagesFrontOffice, getPagesbyIdBackOffice, getPagesbyIdFrontOffice, createPage, updatePage, deletePage, getWebsiteName, updateWebsiteName, getAllImages};
 export default API;

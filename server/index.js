@@ -25,7 +25,7 @@ const getImagesName = () => {
   return new Promise((resolve, reject) => {
     fs.readdir(staticFolderPath, (err, files) => {
       if (err) {
-        reject({error: `Error reading directory for getting all images: ${err}`});
+        reject({ error: `Error reading directory for getting all images: ${err}` });
         return;
       }
 
@@ -152,7 +152,7 @@ app.delete('/api/sessions/current', (req, res) => {
 
 // GET /api/authors
 // This route is used to retrieve all the authors of the application if needed, admin only
-app.get('/api/authors' ,(req,res) => {
+app.get('/api/authors', (req, res) => {
   // Get all the authors
   usersDao.getAuthors()
     .then(authors => res.json(authors))
@@ -163,20 +163,81 @@ app.get('/api/authors' ,(req,res) => {
 /*** PAGES API ***/
 
 
-// GET /api/pages
-// get all the information of the pages for the frontoffice
-app.get('/api/pages', (req, res) => {
-  // Get all the pages for the frontoffice visualization.
-  pagesDao.getPages()
-    // NOTE: "invalid dates" (i.e., missing dates) are set to null during JSON serialization
-    .then(pages => res.json(pages))
-    .catch((err) => res.status(500).json(err)); // always return a json and an error message
-}
+// GET /api/pages/backoffice
+// get all the information of the pages for the backoffice
+app.get('/api/pages/backoffice',
+  isLoggedIn,
+  (req, res) => {
+    // Get all the pages for the backoffice visualization.
+    pagesDao.getPages()
+      // NOTE: "invalid dates" (i.e., missing dates) are set to null during JSON serialization
+      .then(pages => res.json(pages))
+      .catch((err) => res.status(500).json(err)); // always return a json and an error message
+  }
 );
+
+// GET /api/pages/frontoffice
+// get all the information of the pages for the frontoffice
+app.get('/api/pages/frontoffice',
+  (req, res) => {
+    // Get all the pages for the frontoffice visualization.
+    pagesDao.getPages()
+      // NOTE: "invalid dates" (i.e., missing dates) are set to null during JSON serialization
+      .then(pages => {
+        // filter and obtain only publicated pages
+        const front_pages = pages.filter((page) => {
+          const today = dayjs();
+          const publicationDate = dayjs(page.publicationDate);
+          if (publicationDate.isBefore(today, 'day') || publicationDate.isSame(today, 'day')) {
+            return true;
+          }
+          return false;
+        });
+        return res.json(front_pages);
+      })
+      .catch((err) => res.status(500).json(err)); // always return a json and an error message
+  }
+);
+
 
 // GET /api/pages/<id>
 // Get a specific page, identified by the id <id>, along with the associated blocks.
-app.get('/api/pages/:id', [
+// Authenticated (it's possible to retrieve all pages)
+app.get('/api/pages/backoffice/:id',
+  isLoggedIn,
+  [
+    param('id').isInt()
+  ], async (req, res) => {
+    const errors = errorFormatter(validationResult(req)); // format error message
+    if (errors.length !== 0) {
+      return res.status(422).json({ error: errors.join(", ") }); // error message is a single string with all error joined together
+    }
+    try {
+      // check if the page exists
+      const pageId = req.params.id;
+      const page = await pagesDao.getPage(pageId);
+      if (page.error)
+        return res.status(404).json(page);
+
+      // retrieve the blocks of the page
+      const blocks = await blocksDao.getBlocksByPageId(pageId);
+      if (blocks.error)
+        return res.status(404).json(blocks);
+
+      // construct the returning object
+      page.blocks = blocks;
+      return res.json(page);
+    } catch (err) {
+      res.status(500).json({ error: `Error during the retrieve of page ${req.params.id}` });
+    }
+  }
+);
+
+
+// GET /api/pages/<id>
+// Get a specific page, identified by the id <id>, along with the associated blocks.
+// Not authenticated (it's only possible to retrieve published pages)
+app.get('/api/pages/frontoffice/:id', [
   param('id').isInt()
 ], async (req, res) => {
   const errors = errorFormatter(validationResult(req)); // format error message
@@ -184,10 +245,18 @@ app.get('/api/pages/:id', [
     return res.status(422).json({ error: errors.join(", ") }); // error message is a single string with all error joined together
   }
   try {
+    // check if the page exists
     const pageId = req.params.id;
     const page = await pagesDao.getPage(pageId);
     if (page.error)
       return res.status(404).json(page);
+    // check that is published, otherwise return permission denied
+    const publicationDate = dayjs(page.publicationDate);
+    const today = dayjs();
+    if (!(publicationDate.isBefore(today, 'day') || publicationDate.isSame(today, 'day'))) {
+      return res.status(403).json({ error: "Don't Have permissions to retrieve this Page." });
+    }
+    // retrieve the blocks of the page
     const blocks = await blocksDao.getBlocksByPageId(pageId);
     if (blocks.error)
       return res.status(404).json(blocks);
@@ -196,10 +265,11 @@ app.get('/api/pages/:id', [
     page.blocks = blocks;
     return res.json(page);
   } catch (err) {
-    res.status(503).json({ error: `Error during the retrieve of page ${req.params.id}` });
+    res.status(500).json({ error: `Error during the retrieve of page ${req.params.id}` });
   }
 }
 );
+
 
 // POST /api/pages
 // Create a new Page, along with the associated blocks.
@@ -226,13 +296,13 @@ app.post('/api/pages', isLoggedIn,
       if (user.error)
         return res.status(404).json(user);
       // check if this id is the same of authenticated user (not an Admin), otherwise it's ok
-      if(!req.user.isAdmin && userId !== req.user.id) {
-        return res.status(422).json({ error: "Cannot Create a Page for Other Users"});
+      if (!req.user.isAdmin && userId !== req.user.id) {
+        return res.status(403).json({ error: "Cannot Create a Page for Other Users" });
       }
 
       // check if publication date is before creation date 
-      if (req.body.publicationDate && dayjs(req.body.publicationDate).isBefore(dayjs(req.body.creationDate),'day')) {
-        return res.status(422).json({ error: "Cannot Create a Page with misleading dates"});
+      if (req.body.publicationDate && dayjs(req.body.publicationDate).isBefore(dayjs(req.body.creationDate), 'day')) {
+        return res.status(422).json({ error: "Cannot Create a Page with misleading dates" });
       }
 
       const page = {
@@ -251,7 +321,7 @@ app.post('/api/pages', isLoggedIn,
 
       // check that there is at least one header blocks and another block
       if (blocks.length < 2 || blocks.every((block) => block.type !== 'Header')) {
-        return res.status(422).json({ error: "Blocks Costraint Not Respected"});
+        return res.status(422).json({ error: "Blocks Costraint Not Respected" });
       }
 
       // additional check to make sure there are no blocks with same blockOrder
@@ -268,16 +338,16 @@ app.post('/api/pages', isLoggedIn,
       if (images.error)
         return res.status(404).json(images);
 
-      let wrongImageContent;
+      let wrongImageContent = [];
 
       blocks.forEach((block) => {
-          if (block.type === "Image" && !images.some(image => image === block.content)) {
-            wrongImageContent = block.content;
-          }
+        if (block.type === "Image" && !images.some(image => image === block.content)) {
+          wrongImageContent.push(block.content);
+        }
       });
 
-      if (wrongImageContent) {
-        return res.status(422).json({ error: `Image Block have mismatched content: ${wrongImageContent}.` });
+      if (wrongImageContent.length !== 0) {
+        return res.status(422).json({ error: `Image Block have mismatched content: ${wrongImageContent.join(' , ')}.` });
       }
 
       // create the page
@@ -294,7 +364,7 @@ app.post('/api/pages', isLoggedIn,
 
       res.json(new_page);
     } catch (err) {
-      res.status(503).json({ error: `Database error during the creation of page: ${err}` });
+      res.status(500).json({ error: `Database error during the creation of page: ${err}` });
     }
   }
 );
@@ -323,7 +393,7 @@ app.post('/api/pages/:id',
     if (errors.length !== 0) {
       return res.status(422).json({ error: errors.join(", ") }); // error message is a single string with all error joined together
     }
-    
+
     if (req.body.id != req.params.id) {
       return res.status(422).json({ error: 'URL and body id mismatch' });
     }
@@ -335,13 +405,13 @@ app.post('/api/pages/:id',
       if (user.error)
         return res.status(404).json(user);
       // check if this id is the same of authenticated user (not an Admin), otherwise it's ok
-      if(!req.user.isAdmin && userId !== req.user.id) {
-        return res.status(422).json({ error: "Cannot Update a Page for Other Users"});
+      if (!req.user.isAdmin && userId !== req.user.id) {
+        return res.status(403).json({ error: "Cannot Update a Page for Other Users" });
       }
 
       // check if publication date is before creation date 
-      if (req.body.publicationDate && dayjs(req.body.publicationDate).isBefore(dayjs(req.body.creationDate),'day')) {
-        return res.status(422).json({ error: "Cannot Update a Page with misleading dates"});
+      if (req.body.publicationDate && dayjs(req.body.publicationDate).isBefore(dayjs(req.body.creationDate), 'day')) {
+        return res.status(422).json({ error: "Cannot Update a Page with misleading dates" });
       }
 
       const page = {
@@ -361,7 +431,7 @@ app.post('/api/pages/:id',
 
       // check that there is at least one header blocks and another block
       if (blocks.length < 2 || blocks.every((block) => block.type !== 'Header')) {
-        return res.status(422).json({ error: "Blocks Costraint Not Respected"});
+        return res.status(422).json({ error: "Blocks Costraint Not Respected" });
       }
 
       // additional check to make sure there are no blocks with same blockOrder
@@ -378,16 +448,16 @@ app.post('/api/pages/:id',
       if (images.error)
         return res.status(404).json(images);
 
-      let wrongImageContent;
-      
+      let wrongImageContent = [];
+
       blocks.forEach((block) => {
-          if (block.type === "Image" && !images.some(image => image === block.content)) {
-            wrongImageContent = block.content;
-          }
+        if (block.type === "Image" && !images.some(image => image === block.content)) {
+          wrongImageContent.push(block.content);
+        }
       });
 
-      if (wrongImageContent) {
-        return res.status(422).json({ error: `Image Block have mismatched content: ${wrongImageContent}.` });
+      if (wrongImageContent.length !== 0) {
+        return res.status(422).json({ error: `Image Block have mismatched content: ${wrongImageContent.join(' , ')}.` });
       }
 
       // update the page
@@ -411,7 +481,7 @@ app.post('/api/pages/:id',
       // return it
       res.json(up_page);
     } catch (err) {
-      res.status(503).json({ error: `Database error during the update of page ${req.params.id}: ${err}` });
+      res.status(500).json({ error: `Database error during the update of page ${req.params.id}: ${err}` });
     }
   }
 );
@@ -429,14 +499,21 @@ app.delete('/api/pages/:id',
       return res.status(422).json({ error: errors.join(", ") }); // error message is a single string with all error joined together
     }
     try {
-      // NOTE: if there is no pages with the specified id, the delete operation is considered successful.
-      const result = await pagesDao.deletePage(req.user.isAdmin, req.user.id, req.params.id);
-      if (result == null)
-        return res.status(200).json({});
-      else
-        return res.status(404).json(result);
+      // check that the page you want to delete exist
+      // if the page exist and has not been cancelled, then it is a permission denied error
+      const page_exist = await pagesDao.getPage(req.params.id);
+      // if page does not exist don't even try to delete it
+      if (!page_exist.error) {
+        // page exist, delete it
+        const result = await pagesDao.deletePage(req.user.isAdmin, req.user.id, req.params.id);
+        if (result === null)
+          return res.status(200).json({});
+        else
+          // page exist and has not been deleted, permission error
+          return res.status(403).json({ error: "Cannot Delete a Page for Other Users" });
+      }
     } catch (err) {
-      res.status(503).json({ error: `Database error during the deletion of page ${req.params.id}: ${err} ` });
+      res.status(500).json({ error: `Database error during the deletion of page ${req.params.id}: ${err} ` });
     }
   }
 );
@@ -485,6 +562,7 @@ app.put('/api/websites/:name',
 // GET /api/images
 // Get all the images relative path
 app.get('/api/images',
+  isLoggedIn,
   async (req, res) => {
     try {
       const result = await getImagesName();

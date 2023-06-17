@@ -1,4 +1,4 @@
-import { Table, Button, Dropdown } from 'react-bootstrap';
+import { Table, Button, Dropdown, Container } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { useContext } from 'react';
 import { UserContext, SetDirtyContext } from './Contexts';
@@ -17,11 +17,12 @@ function ListOfPages(props) {
   // props to delete a page
   const deletePage = props.deletePage;
 
-  if (front_office) {
-    // filter and obtain only publicated pages
+  if (front_office && user.id) {
+    // filter and obtain only publicated pages (only if authenticated otherwise it's useless)
     pageList = pageList.filter((page) => {
       const today = dayjs();
-      if (page.publicationDate.isBefore(today, 'day') || page.publicationDate.isSame(today, 'day')) {
+      const publicationDate = dayjs(page.publicationDate);
+      if (publicationDate.isBefore(today, 'day') || publicationDate.isSame(today, 'day')) {
         return true;
       }
       return false;
@@ -45,7 +46,7 @@ function ListOfPages(props) {
         </tbody>
       </Table>
       {/*Show the button only if authenticated*/}
-      {user.id ? <><ChangeButton front_office={front_office} /><AddButton /></> : ''}
+      {user.id ? <Container className='buttons'><ChangeButton front_office={front_office} /><AddButton /></Container> : ''}
     </>
   );
 }
@@ -75,16 +76,16 @@ function PageElement(props) {
   return (
     <tr key={page.id}>
       <td>
-        {condition ? <Link><i className="bi bi-trash-fill" onClick={() => deletePage()} /></Link> : ''}
+        {condition ? <Link className='icons'><i className="bi bi-trash-fill" onClick={() => deletePage()} /></Link> : ''}
         {'\t'}
-        {condition ? <Link to={`/pages/edit/${page.id}`}><i className="bi bi-pencil-fill" onClick={() => { setDirty(true) }} /></Link> : ''}
+        {condition ? <Link className='icons' to={`/pages/edit/${page.id}`}><i className="bi bi-pencil-fill" onClick={() => { setDirty(true) }} /></Link> : ''}
         {'\t'}
-        <Link to={`/pages/view/${page.id}`}><i className="bi bi-eye-fill" onClick={() => { setDirty(true) }} /></Link>
+        <Link className='icons' to={`/pages/view/${page.id}`}><i className="bi bi-eye-fill" onClick={() => { setDirty(true) }} /></Link>
       </td>
       <td>{page.username}</td>
       <td>{page.title}</td>
-      <td>{page.creationDate.format("YYYY-MM-DD")}</td>
-      <td>{(page.publicationDate.format("YYYY-MM-DD") === 'Invalid Date') ? '' : page.publicationDate.format("YYYY-MM-DD")}</td>
+      <td>{page.creationDate}</td>
+      <td>{page.publicationDate}</td>
     </tr>
   );
 }

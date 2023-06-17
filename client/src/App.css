@@ -1,17 +1,14 @@
 .AddButton {
-  position: fixed;
-  top:93%;
-  right:1%;
+  margin-left: 8%;
   border-radius: 50%;
 }
 
 .icons {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  margin-left: 5%;
+  margin-right: 5%;
 }
 
-.bi {
+a {
   margin-left: 5%;
   margin-right: 5%;
 }
@@ -21,11 +18,10 @@
 }
 
 .PageContent {
-  margin-top: 5%;
+  margin: none;
 }
 
 .BlockFormContent {
-  margin-top: 5%;
   display: grid;
   place-items: center;
 }
@@ -36,12 +32,34 @@
   background-color: rgb(235, 233, 233) !important;
 }
 
-.buttonsPageForm {
+.buttons {
   position:sticky;
   text-align: right;
-  margin-top: 5%;
+  margin-right: 0%;
+  margin-top: 2%;
+  z-index: 2;
 }
 
-.buttonsPageForm Button {
+.buttons Button {
   margin-right: 5%;
+}
+
+#footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  color: white;
+  background-color: #171F26;
+  margin-top: 20px;
+  padding: 20px;
+  text-align: center;
+  z-index: 1;
+}
+
+#footer p {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0px;
+  padding: 0px;
 }

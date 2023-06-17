@@ -2,22 +2,24 @@ import { useParams } from "react-router-dom";
 import { ButtonGroup, Button, Carousel } from "react-bootstrap";
 import { useContext, useState } from "react";
 import API from "../API";
-import { HandleErrorContext } from "./Contexts";
+import { saveBlockContext,imagesBlockContext } from "./Contexts";
 import { IMAGE_PATH } from "./Costants";
 
 function BlockForm(props) {
     // id of the page to be fetched
     const pageId = useParams().id;
     // function to handle errors
-    const handleError = useContext(HandleErrorContext);
-    // function to add a new block to the blockList
+    const images = useContext(imagesBlockContext);
+    // function to save a block (update it)
+    const saveBlock = useContext(saveBlockContext);
+    // function to add a new block to the blockList and the blockList
     const { addBlock, blockList } = props;
+    // function to view the selected editImageBlock and to reset it once edited
+    const {imageEditBlock, setImageEditBlock} = props;
     // state to render or not the choice of the images, depending if add Image has been clicked or not
     const [showImages, setShowImages] = useState(false);
-    // state to mantain all the images available
-    const [images, setImages] = useState([]);
-    // temporary client id for visualization
-    const [tempId,setTempId] = useState(blockList.length + 1);
+    // temporary client id for visualization (find the max id in the blockList array and add 1)
+    const [tempId,setTempId] = useState(blockList.reduce((max, obj) => (obj.id > max ? obj.id : max), -Infinity) + 1);
     // function to add an empty Header block to the blockList
     function addHeader() {
         // temporary client id just for visualization, when sended to the server will be removed and created by the db
@@ -53,31 +55,29 @@ function BlockForm(props) {
     }
 
     // function to add an empty Image block to the blockList
-    function addImage(image) {
-        // temporary client id just for visualization, when sended to the server will be removed and created by the db
-        const newTempId = tempId;
-        setTempId((oldTempId) => oldTempId + 1);
-        // create an empty header block and pass it to the addHeader function
-        const block = {
-            id: newTempId,
-            pageId: pageId,
-            type: 'Image',
-            content: image,
-            // it does not matter, since the order of blocks when submitting will be the index+1 inside the blocklist
-            blockOrder: undefined
-        };
-        addBlock(block);
-    }
-
-    // call the API to display the images for choice
-    async function retrieveAllImages() {
-        try {
-            const images = await API.getAllImages();
-            setImages(images);
-            // set view to choice image visible
-            setShowImages(true); 
-        } catch (err) {
-            handleError(err);
+    function addEditImage(image) {
+        // disable image viewing
+        setShowImages(false);
+        if (!imageEditBlock) {
+            // no edit was setted, so add a new image
+            // temporary client id just for visualization, when sended to the server will be removed and created by the db
+            const newTempId = tempId;
+            setTempId((oldTempId) => oldTempId + 1);
+            // create an empty header block and pass it to the addHeader function
+            const block = {
+                id: newTempId,
+                pageId: pageId,
+                type: 'Image',
+                content: image,
+                // it does not matter, since the order of blocks when submitting will be the index+1 inside the blocklist
+                blockOrder: undefined
+            };
+            addBlock(block);
+        } else {
+            // save edit of the selected imageBlock
+            const updated_block = Object.assign({},imageEditBlock,{content: image});
+            saveBlock(updated_block);
+            setImageEditBlock(undefined);
         }
     }
 
@@ -86,15 +86,16 @@ function BlockForm(props) {
             <ButtonGroup aria-label="Basic example">
                 <Button variant="primary" onClick={() => addHeader()}>Add Header</Button>
                 <Button variant="success" onClick={() => addParagraph()}>Add Paragraph</Button>
-                <Button variant="info" onClick={() => retrieveAllImages()}>Add Image</Button>
+                <Button variant="info" onClick={() => setShowImages(true)}>Add Image</Button>
             </ButtonGroup>
-            {showImages ?
+            { //render if we want to add a new image or we have click edit on an already existing one (so state not undefined)
+            (showImages || imageEditBlock!==undefined) ?
                 <>
                     <h4>Click on One Image to select it</h4>
-                    <Carousel style={{ width: '500px', height: '300px' }}>
+                    <Carousel style={{ width: '250px', height: '150px' }}>
                         {images.map((image, index) => {
                             return <Carousel.Item key={index}>
-                                <img src={IMAGE_PATH + `${image}`} onClick={() => {addImage(image)}} width={500} height={300} />
+                                <img src={IMAGE_PATH + `${image}`} onClick={() => {addEditImage(image)}} width={250} height={150} />
                             </Carousel.Item>;
                         })}
                     </Carousel>

@@ -31,7 +31,8 @@ const handleSortContext = createContext(null);
 const removeBlockContext = createContext(null);
 // handleSort shared context
 const saveBlockContext = createContext(null);
-
+// images shared context
+const imagesBlockContext = createContext(null);
 
 export {
             UserContext,
@@ -43,5 +44,6 @@ export {
             onDragEnterContext,
             handleSortContext,
             removeBlockContext,
-            saveBlockContext
+            saveBlockContext,
+            imagesBlockContext
         };

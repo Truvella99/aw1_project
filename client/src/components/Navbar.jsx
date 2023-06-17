@@ -22,7 +22,7 @@ function NavHeader(props) {
     // error message state for handling errors
     const HandleError = useContext(HandleErrorContext);
     // name of the website state and state that handle the initial attempt to see if a user is already logged in
-    const {websiteName,setTryLogIn} = props;
+    const {websiteName} = props;
     // state for edit the websiteName field
     const [editable,setEditable] = useState(false);
     // state for the current value of website name during the editing
@@ -40,7 +40,6 @@ function NavHeader(props) {
         API.logOut()
             .then(user => {
                 setUser({});
-                setTryLogIn(true);
                 // refresh data
                 setDirty(true);
                 navigate('/');

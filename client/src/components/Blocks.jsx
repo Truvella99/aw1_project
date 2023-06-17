@@ -2,12 +2,11 @@ import { useState,useContext } from "react";
 import { Row,Col } from "react-bootstrap";
 import { UserContext,render_componentsContext,onDragStartContext, onDragEnterContext, handleSortContext, removeBlockContext, saveBlockContext } from "./Contexts";
 import { IMAGE_PATH } from "./Costants";
+import { Link } from "react-router-dom";
 
 function Header(props) {
     // block object fo this block and current index in the block array 
     const { block, index } = props;
-    // set the content editable
-    const [editable, setEditable] = useState(false);
     // onDragStart shared with useContext hook
     const onDragStart = useContext(onDragStartContext);
     // onDragEnter shared with useContext hook
@@ -18,17 +17,12 @@ function Header(props) {
     const removeBlock = useContext(removeBlockContext);
     // onDragStart shared with useContext hook
     const saveBlock = useContext(saveBlockContext);
-    // user context
-    const user = useContext(UserContext);
-    // state for the current value of block content during the editing
-    const [blockContent, setBlockContent] = useState(block.content);
     // condition of rendering shared with useContext hook
     const render_components = useContext(render_componentsContext);
 
     // function that handle the procedure to save the block
-    function save() {
-        setEditable(false);
-        block.content = blockContent;
+    function save(new_content) {
+        block.content = new_content;
         saveBlock(block);
     }
 
@@ -40,17 +34,11 @@ function Header(props) {
                 onDragEnter={(event) => onDragEnter(event, index)}
                 onDragEnd={(event) => { handleSort(event) }}
                 style={{ borderTop: '1px solid black' }}>
-                <Col md={2} className='icons'>
-                    <i className="bi bi-trash-fill" onClick={() => removeBlock(block)}></i>
-                    {'  '}
-                    <i className="bi bi-pencil-fill" onClick={() => setEditable(true)}></i>
-                    {'  '}
-                    <i className="bi bi-device-hdd-fill" onClick={() => save()}></i>
+                <Col md={2} className='d-flex align-items-center justify-content-center'>
+                    <Link><i className="bi bi-trash-fill" onClick={() => removeBlock(block)}></i></Link>
                 </Col>
                 <Col md={4}>
-                    <h3 style={editable ? { backgroundColor: 'white' } : { overflow: 'hidden' }} contentEditable={editable} suppressContentEditableWarning={true} onInput={(event) => { setBlockContent(event.target.textContent) }}>
-                        {block.content}
-                    </h3>
+                    <input type="text" value={block.content} style={{ backgroundColor: 'white' }} contentEditable={true} suppressContentEditableWarning={true} onChange={(event) => { save(event.target.value) }}/>
                 </Col>
             </Row>
         );
@@ -62,8 +50,6 @@ function Header(props) {
 function Paragraph(props) {
     // block object fo this block and current index in the block array 
     const { block, index } = props;
-    // set the content editable
-    const [editable, setEditable] = useState(false);
     // onDragStart shared with useContext hook
     const onDragStart = useContext(onDragStartContext);
     // onDragEnter shared with useContext hook
@@ -74,17 +60,12 @@ function Paragraph(props) {
     const removeBlock = useContext(removeBlockContext);
     // onDragStart shared with useContext hook
     const saveBlock = useContext(saveBlockContext);
-    // user context
-    const user = useContext(UserContext);
-    // state for the current value of block content during the editing
-    const [blockContent, setBlockContent] = useState(block.content);
     // condition of rendering shared with useContext hook
     const render_components = useContext(render_componentsContext);
 
     // function that handle the procedure to save the block
-    function save() {
-        setEditable(false);
-        block.content = blockContent;
+    function save(new_content) {
+        block.content = new_content;
         saveBlock(block);
     }
 
@@ -96,17 +77,11 @@ function Paragraph(props) {
                 onDragEnter={(event) => onDragEnter(event, index)}
                 onDragEnd={(event) => { handleSort(event) }}
                 style={{ borderTop: '1px solid black' }}>
-                <Col md={2} className='icons'>
-                    <i className="bi bi-trash-fill" onClick={() => removeBlock(block)}></i>
-                    {'  '}
-                    <i className="bi bi-pencil-fill" onClick={() => setEditable(true)}></i>
-                    {'  '}
-                    <i className="bi bi-device-hdd-fill" onClick={() => save()}></i>
+                <Col md={2} className='d-flex align-items-center justify-content-center'>
+                    <Link><i className="bi bi-trash-fill" onClick={() => removeBlock(block)}></i></Link>
                 </Col>
                 <Col md={4}>
-                    <p style={editable ? { backgroundColor: 'white', margin: 'auto' } : { margin: 'auto', overflow: 'hidden' }} contentEditable={editable} suppressContentEditableWarning={true} onInput={(event) => { setBlockContent(event.target.textContent) }}>
-                        {block.content}
-                    </p>
+                    <input type="text" value={block.content} style={{ backgroundColor: 'white' }} contentEditable={true} suppressContentEditableWarning={true} onChange={(event) => { save(event.target.value) }}/>
                 </Col>
             </Row>
         );
@@ -118,10 +93,8 @@ function Paragraph(props) {
 
 
 function Image(props) {
-    // block object fo this block and current index in the block array 
-    const { block, index } = props;
-    // set the content editable
-    const [editable, setEditable] = useState(false);
+    // block object fo this block, current index in the block array and prop to set this block as edit image block if edit is clicked 
+    const { block, index, setImageEditBlock } = props;
     // onDragStart shared with useContext hook
     const onDragStart = useContext(onDragStartContext);
     // onDragEnter shared with useContext hook
@@ -132,8 +105,6 @@ function Image(props) {
     const removeBlock = useContext(removeBlockContext);
     // onDragStart shared with useContext hook
     const saveBlock = useContext(saveBlockContext);
-    // user context
-    const user = useContext(UserContext);
     // condition of rendering shared with useContext hook
     const render_components = useContext(render_componentsContext);
 
@@ -145,20 +116,18 @@ function Image(props) {
                 onDragEnter={(event) => onDragEnter(event, index)}
                 onDragEnd={(event) => { handleSort(event) }}
                 style={{ borderTop: '1px solid black' }}>
-                <Col md={2} className='icons'>
-                    <i className="bi bi-trash-fill" onClick={() => removeBlock(block)}></i>
+                <Col md={2} className='d-flex align-items-center justify-content-center'>
+                    <Link><i className="bi bi-trash-fill" onClick={() => removeBlock(block)}></i></Link>
                     {'  '}
-                    <i className="bi bi-pencil-fill" onClick={() => setEditable(true)}></i>
-                    {'  '}
-                    <i className="bi bi-device-hdd-fill" onClick={() => { setEditable(false); saveBlock(block) }}></i>
+                    <Link><i className="bi bi-pencil-fill" onClick={() => setImageEditBlock(block)}></i></Link>
                 </Col>
                 <Col md={4}>
-                    <img src={IMAGE_PATH + `${block.content}`} width={500} height={300} />
+                    <img src={IMAGE_PATH + `${block.content}`} width={250} height={150} />
                 </Col>
             </Row>
         );
     } else {
-        return <img src={IMAGE_PATH + `${block.content}`} width={500} height={300} />;
+        return <img style={{display: 'block', marginTop: '10px'}} src={IMAGE_PATH + `${block.content}`} width={250} height={150} />;
     }
 }
 
