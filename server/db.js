@@ -5,7 +5,7 @@
 const sqlite = require('sqlite3');
 
 // open the database
-const db = new sqlite.Database('cmsmall.db', (err) => {
+const db = new sqlite.Database('cmsmall.sqlite', (err) => {
   if (err) throw err;
 });
 

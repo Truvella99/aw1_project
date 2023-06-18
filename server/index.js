@@ -150,11 +150,16 @@ app.delete('/api/sessions/current', (req, res) => {
   });
 });
 
-// GET /api/authors
-// This route is used to retrieve all the authors of the application if needed, admin only
-app.get('/api/authors', (req, res) => {
-  // Get all the authors
-  usersDao.getAuthors()
+// GET /api/users
+// This route is used to retrieve all the users of the application if needed, admin only
+app.get('/api/users', isLoggedIn 
+  ,(req, res) => {
+  // if not admin, return permission denied error
+  if(!req.user.isAdmin) {
+    return res.status(401).json({ error: "Cannot Get all The Users." });
+  }
+  // Get all the users
+  usersDao.getUsers()
     .then(authors => res.json(authors))
     .catch((err) => res.status(500).json(err)); // always return a json and an error message
 }
@@ -254,7 +259,7 @@ app.get('/api/pages/frontoffice/:id', [
     const publicationDate = dayjs(page.publicationDate);
     const today = dayjs();
     if (!(publicationDate.isBefore(today, 'day') || publicationDate.isSame(today, 'day'))) {
-      return res.status(403).json({ error: "Don't Have permissions to retrieve this Page." });
+      return res.status(401).json({ error: "Don't Have permissions to retrieve this Page." });
     }
     // retrieve the blocks of the page
     const blocks = await blocksDao.getBlocksByPageId(pageId);
@@ -297,7 +302,7 @@ app.post('/api/pages', isLoggedIn,
         return res.status(404).json(user);
       // check if this id is the same of authenticated user (not an Admin), otherwise it's ok
       if (!req.user.isAdmin && userId !== req.user.id) {
-        return res.status(403).json({ error: "Cannot Create a Page for Other Users" });
+        return res.status(401).json({ error: "Cannot Create a Page for Other Users" });
       }
 
       // check if publication date is before creation date 
@@ -406,7 +411,7 @@ app.post('/api/pages/:id',
         return res.status(404).json(user);
       // check if this id is the same of authenticated user (not an Admin), otherwise it's ok
       if (!req.user.isAdmin && userId !== req.user.id) {
-        return res.status(403).json({ error: "Cannot Update a Page for Other Users" });
+        return res.status(401).json({ error: "Cannot Update a Page for Other Users" });
       }
 
       // check if publication date is before creation date 
@@ -504,13 +509,13 @@ app.delete('/api/pages/:id',
       const page_exist = await pagesDao.getPage(req.params.id);
       // if page does not exist don't even try to delete it
       if (!page_exist.error) {
-        // page exist, delete it
+        // page exist, delete it (ON DELETE CASCADE, SO DELETE ALSO THE BLOCKS)
         const result = await pagesDao.deletePage(req.user.isAdmin, req.user.id, req.params.id);
         if (result === null)
           return res.status(200).json({});
         else
           // page exist and has not been deleted, permission error
-          return res.status(403).json({ error: "Cannot Delete a Page for Other Users" });
+          return res.status(401).json({ error: "Cannot Delete a Page for Other Users" });
       }
     } catch (err) {
       res.status(500).json({ error: `Database error during the deletion of page ${req.params.id}: ${err} ` });
@@ -546,6 +551,10 @@ app.put('/api/websites/:name',
       return res.status(422).json({ error: errors.join(", ") }); // error message is a single string with all error joined together
     }
     try {
+      // if not admin return permission denied error
+      if (!req.user.isAdmin) {
+        return res.status(401).json({ error: "Cannot Update Website Name." });
+      }
       const result = await websiteDao.updateWebsiteName(req.params.name, req.user.isAdmin);
       if (result.error)
         res.status(404).json(result);
@@ -562,7 +571,6 @@ app.put('/api/websites/:name',
 // GET /api/images
 // Get all the images relative path
 app.get('/api/images',
-  isLoggedIn,
   async (req, res) => {
     try {
       const result = await getImagesName();

@@ -26,13 +26,16 @@ function NavHeader(props) {
     // state for edit the websiteName field
     const [editable,setEditable] = useState(false);
     // state for the current value of website name during the editing
-    const [editingName,setEditingName] = useState(websiteName);
-
+    const [editingName,setEditingName] = useState('');
+    
     // function to save the website name persistently
     function saveWebsiteName(new_name) {
-        // disable name editing
-        setEditable(false);
-        props.updateWebsiteName(new_name);
+        // click change website name without change nothing
+        if (new_name !== '') {
+            // disable name editing
+            setEditable(false);
+            props.updateWebsiteName(new_name);
+        }
     }
 
     // logout function

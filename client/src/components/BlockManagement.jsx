@@ -86,7 +86,7 @@ function BlockForm(props) {
             <ButtonGroup aria-label="Basic example">
                 <Button variant="primary" onClick={() => addHeader()}>Add Header</Button>
                 <Button variant="success" onClick={() => addParagraph()}>Add Paragraph</Button>
-                <Button variant="info" onClick={() => setShowImages(true)}>Add Image</Button>
+                <Button variant="info" onClick={() => {setShowImages(true); /* give priority to the user action if press add image after editing */ setImageEditBlock(undefined);}}>Add Image</Button>
             </ButtonGroup>
             { //render if we want to add a new image or we have click edit on an already existing one (so state not undefined)
             (showImages || imageEditBlock!==undefined) ?

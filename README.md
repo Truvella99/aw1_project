@@ -262,8 +262,8 @@
     Response: `200 OK` (success) or `500 Internal Server Error` (generic error).
 
     Response body: _None_
-- GET `/api/authors`
-  - Description: Get All The Authors of The Application (cambiare solo admin o aotenticato nel caso li faccio comparire solo in add/edit pagina)
+- GET `/api/users`
+  - Description: Get All The Users of The Application
 
     Request body: _None_ 
 
@@ -368,8 +368,8 @@
 
 ## Users Credentials
 
-- enrico@gmail.com, pass (user author of two pages)
+- enrico@gmail.com, pass (user author of two pages, 1 page published and 1 page draft)
 - giorgio@gmail.com, pass (user who has never created a page)
 - admin@gmail.com, pass (user with admin privileges)
-- domenico@gmail.com, pass (plus any other requested info) ???
+- domenico@gmail.com, pass (user author of the remaining 4 pages: 1 published,1 draft,2 programmed)
 

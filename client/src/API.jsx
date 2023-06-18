@@ -77,18 +77,18 @@ async function logOut() {
 };
 
 /**
- * This function is used to retrieve all the authors of the application
- * It returns a JSON object with the authors
+ * This function is used to retrieve all the users of the application
+ * It returns a JSON object with the users
  */
-async function getAuthors() {
-  const response = await fetch(SERVER_URL + '/authors', {
+async function getUsers() {
+  const response = await fetch(SERVER_URL + '/users', {
     // this parameter specifies that authentication cookie must be forwared
     credentials: 'include'
   }).catch(() => {throw {error: "Connection Error"}});
   if (response.ok) {
     // 200 status code, return the object
-    const authors = await response.json();
-    return authors;
+    const users = await response.json();
+    return users;
   } else {
     // json object provided by the server with the error
     const error = await response.json();
@@ -280,7 +280,7 @@ async function updateWebsiteName(new_name) {
  * Getting from the server all the images relative path
 */
 async function getAllImages() {
-  const response = await fetch(SERVER_URL + '/images', {credentials: 'include'}).catch(() => { throw { error: "Connection Error" } });
+  const response = await fetch(SERVER_URL + '/images').catch(() => { throw { error: "Connection Error" } });
   if (response.ok) {
     // 200 status code, parse and return the object
     const images = await response.json();
@@ -293,5 +293,5 @@ async function getAllImages() {
   }
 }
 
-const API = {logIn, getUserInfo, logOut, getAuthors, getPagesBackOffice, getPagesFrontOffice, getPagesbyIdBackOffice, getPagesbyIdFrontOffice, createPage, updatePage, deletePage, getWebsiteName, updateWebsiteName, getAllImages};
+const API = {logIn, getUserInfo, logOut, getUsers, getPagesBackOffice, getPagesFrontOffice, getPagesbyIdBackOffice, getPagesbyIdFrontOffice, createPage, updatePage, deletePage, getWebsiteName, updateWebsiteName, getAllImages};
 export default API;

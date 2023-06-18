@@ -42,34 +42,24 @@ function PageComponent(props) {
   const location = props.location;
   // condition to render components and make them editable
   let render_components;
-  // condition to make page form components not editable 
-  let make_not_editable;
 
   if (location === 'add') {
     // if user is not logged in, not render add/edit logic and make form components not editable
     // render_components = false
-    // make_not_editable = true
     // otherwise render add logic and make form components editable
     // render_components = true
-    // make_not_editable = false
     render_components = user.id !== undefined;
-    make_not_editable = !render_components;
   } else if (location === 'view') {
     // not render the add/edit logic and make form components not editable a priori since we want to view only
     // render_components = false
-    // make_not_editable = true
     render_components = false;
-    make_not_editable = !render_components;
   } else {
     // edit path
     // if user is logged in, owns the page that he wants to edit or he's an Admin, render add/edit logic and make form components editable 
     // render_components = true
-    // make_not_editable = false
     // otherwise render add logic and make form components not editable
     // render_components = false
-    // make_not_editable = true
     render_components = (user.id === page.userId) || user.isAdmin;
-    make_not_editable = !render_components;
   }
 
   // useeffect, executed only when the component is mounted, used to retrieve the informations of the specific page
@@ -94,9 +84,9 @@ function PageComponent(props) {
         handleError(err);
       }
     };
-    async function getAuthors() {
+    async function getUsers() {
       try {
-        const authors = await API.getAuthors();
+        const authors = await API.getUsers();
         setAuthors(authors);
       } catch (err) {
         handleError(err);
@@ -113,13 +103,15 @@ function PageComponent(props) {
     }
 
     if (pageId) {
+      // edit/view page case
       getPage(pageId);
     } else {
+      // add page case
       setCreationDate(dayjs().format("YYYY-MM-DD"));
       setAuthor(user.username);
     }
     if (isAdmin) {
-      getAuthors();
+      getUsers();
     }
     retrieveAllImages();
   }, []);
@@ -184,7 +176,7 @@ function PageComponent(props) {
             <Form.Label>Page Title</Form.Label>
             <Form.Control
               required
-              readOnly={make_not_editable}
+              readOnly={!render_components}
               type="text"
               placeholder="Insert Page Title Here"
               onChange={event => setTitle(event.target.value)}
@@ -216,7 +208,7 @@ function PageComponent(props) {
           </Form.Group>
           <Form.Group as={Col} md="3" controlId="validationCustom02">
             <Form.Label>Page Publication Date</Form.Label>
-            <Form.Control type="date" readOnly={make_not_editable} min={creationDate} onChange={event => setPublicationDate(event.target.value)} defaultValue={publicationDate} />
+            <Form.Control type="date" readOnly={!render_components} min={creationDate} onChange={event => setPublicationDate(event.target.value)} defaultValue={publicationDate} />
             <Form.Control.Feedback type='invalid'>Please Insert a Valid Date.</Form.Control.Feedback>
           </Form.Group>
         </Row>

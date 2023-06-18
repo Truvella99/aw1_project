@@ -51,8 +51,8 @@ exports.getUser = (email, password) => {
   });
 };
 
-// get all users, so all authors name for letting the admin change the author
-exports.getAuthors = () => {
+// get all users, so all users name for letting the admin change the users
+exports.getUsers = () => {
   return new Promise((resolve, reject) => {
     const sql = 'SELECT id,username FROM USERS';
     db.all(sql, [], (err, rows) => {

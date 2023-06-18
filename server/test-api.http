@@ -5,7 +5,7 @@ POST http://localhost:3001/api/sessions HTTP/1.1
 content-type: application/json
 
 {
-    "username": "enrico@gmail.com",
+    "username": "admin@gmail.com",
     "password": "pass"
 }
 ###
@@ -31,11 +31,11 @@ GET http://localhost:3001/api/pages/backoffice HTTP/1.1
 ###
 
 ## Get a specific only-published page (front office), identified by the id <id>, along with the associated blocks.
-GET http://localhost:3001/api/pages/frontoffice/1 HTTP/1.1
+GET http://localhost:3001/api/pages/frontoffice/5 HTTP/1.1
 ###
 
 ## Get a specific page (back office), identified by the id <id>, along with the associated blocks.
-GET http://localhost:3001/api/pages/backoffice/5 HTTP/1.1
+GET http://localhost:3001/api/pages/backoffice/1 HTTP/1.1
 ###
 
 ## Create a new Page, along with the associated blocks.
@@ -86,13 +86,13 @@ content-type: application/json
     {
       "pageId": 1,
       "type": "Image",
-      "content": "iage1.jpg",
+      "content": "image1.jpg",
       "blockOrder": 2
     },
     {
       "pageId": 1,
       "type": "Image",
-      "content": "imae1.jpg",
+      "content": "image1.jpg",
       "blockOrder": 3
     }
   ]
@@ -101,7 +101,7 @@ content-type: application/json
 ###
 
 # Delete the page.
-DELETE http://localhost:3001/api/pages/2 HTTP/1.1
+DELETE http://localhost:3001/api/pages/1 HTTP/1.1
 ###
 
 ## Get the website name.
@@ -109,7 +109,7 @@ GET http://localhost:3001/api/websites HTTP/1.1
 ###
 
 ## Update the website name.
-PUT http://localhost:3001/api/websites/nuovoNome HTTP/1.1
+PUT http://localhost:3001/api/websites/CMSMALL HTTP/1.1
 ###
 
 ## Get all the images relative path

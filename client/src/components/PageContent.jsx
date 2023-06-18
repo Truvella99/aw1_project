@@ -88,10 +88,6 @@ function PageContent(props) {
                                     <Container className="blockList">
                                         {blockList.map((block, index) => {
                                             switch (block.type) {
-                                                // use index to map instead of block.id since when adding a new block we have to create a temporary id,
-                                                // (blockList.lenght + 1) that could be in conflict with original block.id. Since here we don't care
-                                                // about block.id we use index (will be the server that will create them (Add page from scratch,
-                                                // Edit page delete them and then recreate them).
                                                 case "Header":
                                                     return <Header className='block' key={block.id} block={block} index={index} />;
                                                     break;
