@@ -11,6 +11,7 @@ import { Alert,Row,Col,Button, Container } from 'react-bootstrap';
 import {ListOfPages} from './components/PageList';
 import {PageComponent} from './components/PageComponent';
 import { UserContext,SetUserContext,HandleErrorContext,SetDirtyContext } from './components/Contexts';
+import { LoadingSpinner } from './components/Loading';
 
 function App() {
   // state of the user
@@ -25,8 +26,7 @@ function App() {
   const [errorMessage, setErrorMessage] = useState('');
   // name of the webiste state
   const [websiteName,setWebsiteName] = useState('');
-
-  // loading state TODO
+  // loading state: handle the first resource loading, showing a loading spinner
   const [initialLoading,setInitialLoading] = useState(true);
 
   // function to handle the application errors, all displayed into the Alert under the NavHeader
@@ -58,7 +58,6 @@ function App() {
         }
         setPageList(pages);
         setDirty(false);
-        //setInitialLoading(false);
       } catch (err) {
         handleError(err);
       }
@@ -68,6 +67,8 @@ function App() {
         const websiteName = await API.getWebsiteName();
         setWebsiteName(websiteName.name);
         setDirty(false);
+        // here because we disable the spinner when we have retrieved all the data
+        setInitialLoading(false);
       } catch (err) {
         handleError(err);
       }
@@ -129,6 +130,7 @@ function App() {
 
   return (
     <>
+      {initialLoading && <LoadingSpinner/>}
       <BrowserRouter>
         <UserContext.Provider value={user}>
           <SetUserContext.Provider value={setUser}> {/*Forse non Serve col context*/}

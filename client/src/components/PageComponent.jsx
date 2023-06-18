@@ -3,7 +3,7 @@ import { Container, Form, Row, Col, Button, Alert, Dropdown } from 'react-bootst
 import { useNavigate, Link, useLocation, useParams } from 'react-router-dom';
 import { UserContext, HandleErrorContext, render_componentsContext, SetDirtyContext, imagesBlockContext } from './Contexts';
 import { PageContent } from './PageContent';
-import { BlockForm } from './BlockManagement';
+import { LoadingSpinner } from './Loading';
 import API from '../API';
 import dayjs from 'dayjs';
 
@@ -36,7 +36,9 @@ function PageComponent(props) {
   const [author, setAuthor] = useState('');
   const [creationDate, setCreationDate] = useState('');
   const [publicationDate, setPublicationDate] = useState('');
-
+  // loading state: handle the first resource loading, showing a loading spinner
+  const [initialLoading,setInitialLoading] = useState(true);
+ 
   /*const current_filter = useLocation().state;*/
   // props to tell where in which url i am mounting this component
   const location = props.location;
@@ -114,6 +116,8 @@ function PageComponent(props) {
       getUsers();
     }
     retrieveAllImages();
+    // disable the sppiner after retrieving all the data
+    setInitialLoading(false);
   }, []);
 
   async function handleSubmit(event)  {
@@ -170,6 +174,7 @@ function PageComponent(props) {
 
   return (
     <Container fluid>
+      {initialLoading && <LoadingSpinner/>}
       <Form noValidate validated={validated} onSubmit={handleSubmit}>
         <Row className="mb-3">
           <Form.Group as={Col} md="3" controlId="validationCustom01">
