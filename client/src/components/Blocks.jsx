@@ -1,6 +1,6 @@
 import { useState,useContext } from "react";
 import { Row,Col } from "react-bootstrap";
-import { UserContext,render_componentsContext,onDragStartContext, onDragEnterContext, handleSortContext, removeBlockContext, saveBlockContext } from "./Contexts";
+import { UserContext,render_componentsContext,onDragStartContext, onDragEnterContext, handleSortContext, removeBlockContext, saveBlockContext, blockDisabledContext } from "./Contexts";
 import { IMAGE_PATH } from "./Costants";
 import { Link } from "react-router-dom";
 
@@ -19,6 +19,8 @@ function Header(props) {
     const saveBlock = useContext(saveBlockContext);
     // condition of rendering shared with useContext hook
     const render_components = useContext(render_componentsContext);
+    // editable context to edit the block or not
+    const disabled = useContext(blockDisabledContext);
 
     // function that handle the procedure to save the block
     function save(new_content) {
@@ -41,7 +43,7 @@ function Header(props) {
                     <Link><i className="bi bi-trash-fill" onClick={() => removeBlock(block)}></i></Link>
                 </Col>
                 <Col md={4}>
-                    <input type="text" value={block.content} style={{ backgroundColor: 'white' }} contentEditable={true} suppressContentEditableWarning={true} onChange={(event) => { save(event.target.value) }}/>
+                    <input type="text" value={block.content} style={{ backgroundColor: 'white' }} disabled={disabled} onChange={(event) => { save(event.target.value) }}/>
                 </Col>
             </Row>
         );
@@ -65,6 +67,8 @@ function Paragraph(props) {
     const saveBlock = useContext(saveBlockContext);
     // condition of rendering shared with useContext hook
     const render_components = useContext(render_componentsContext);
+    // editable context to edit the block or not
+    const disabled = useContext(blockDisabledContext);
 
     // function that handle the procedure to save the block
     function save(new_content) {
@@ -87,7 +91,7 @@ function Paragraph(props) {
                     <Link><i className="bi bi-trash-fill" onClick={() => removeBlock(block)}></i></Link>
                 </Col>
                 <Col md={4}>
-                    <input type="text" value={block.content} style={{ backgroundColor: 'white' }} contentEditable={true} suppressContentEditableWarning={true} onChange={(event) => { save(event.target.value) }}/>
+                    <input type="text" value={block.content} style={{ backgroundColor: 'white' }} disabled={disabled} onChange={(event) => { save(event.target.value) }}/>
                 </Col>
             </Row>
         );

@@ -33,6 +33,8 @@ const removeBlockContext = createContext(null);
 const saveBlockContext = createContext(null);
 // images shared context
 const imagesBlockContext = createContext(null);
+// block disabled flag context
+const blockDisabledContext = createContext(null);
 
 export {
             UserContext,
@@ -45,5 +47,6 @@ export {
             handleSortContext,
             removeBlockContext,
             saveBlockContext,
-            imagesBlockContext
+            imagesBlockContext,
+            blockDisabledContext
         };

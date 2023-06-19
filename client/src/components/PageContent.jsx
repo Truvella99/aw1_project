@@ -1,6 +1,6 @@
 import { useContext, useState } from "react";
 import { Container, Col } from "react-bootstrap";
-import { onDragStartContext, onDragEnterContext, handleSortContext, removeBlockContext, saveBlockContext, render_componentsContext } from './Contexts';
+import { onDragStartContext, onDragEnterContext, handleSortContext, removeBlockContext, saveBlockContext, render_componentsContext, blockDisabledContext } from './Contexts';
 import { Header, Paragraph, Image } from "./Blocks";
 import { BlockForm } from "./BlockManagement";
 
@@ -15,6 +15,8 @@ function PageContent(props) {
     const render_components = useContext(render_componentsContext);
     // state to save the current image to modify
     const [imageEditBlock,setImageEditBlock] = useState(undefined);
+    // state to handle the block editing (header/paragraph). the block is disabled only when i am dragging
+    const [disabled,setDisabled] = useState(false);
 
     // function to add a block from the blocklist
     function addBlock(block) {
@@ -47,6 +49,8 @@ function PageContent(props) {
 
     // function to handle the drag start
     function onDragStart(event, index) {
+        // disable blocks editing
+        setDisabled(true);
         // set the start item index
         setSourceIndex(index);
     }
@@ -73,6 +77,8 @@ function PageContent(props) {
         setBlockList(reordered_list);
         setSourceIndex(undefined);
         setDestinationIndex(undefined);
+        // enable block editing
+        setDisabled(false);
     }
 
     // each element has the draggable property to make it draggable
@@ -82,31 +88,33 @@ function PageContent(props) {
                 <handleSortContext.Provider value={handleSort}>
                     <removeBlockContext.Provider value={removeBlock}>
                         <saveBlockContext.Provider value={saveBlock}>
-                            <>
-                                <Col md={7} className='PageContent'>
-                                    {render_components ? <h2 style={{ textAlign: 'center' }}>Drag and Drop Items to Rearrange Them</h2> : ''}
-                                    <Container className="blockList">
-                                        {blockList.map((block, index) => {
-                                            switch (block.type) {
-                                                case "Header":
-                                                    return <Header className='block' key={block.id} block={block} index={index} />;
-                                                    break;
-                                                case "Paragraph":
-                                                    return <Paragraph className='block' key={block.id} block={block} index={index} />;
-                                                    break;
-                                                case "Image":
-                                                    return <Image className='block' key={block.id} block={block} index={index} setImageEditBlock={setImageEditBlock}/>;
-                                                    break;
-                                                default:
-                                                    break;
-                                            }
-                                        })}
-                                    </Container>
-                                </Col>
-                                <Col md={5} className='BlockFormContent'>
-                                    { render_components ? <BlockForm imageEditBlock={imageEditBlock} setImageEditBlock={setImageEditBlock} blockList={blockList} addBlock={addBlock} /> : ''}
-                                </Col>
-                            </>
+                            <blockDisabledContext.Provider value={disabled}>
+                                <>
+                                    <Col md={7} className='PageContent'>
+                                        {render_components ? <h2 style={{ textAlign: 'center' }}>Drag and Drop Items to Rearrange Them</h2> : ''}
+                                        <Container className="blockList">
+                                            {blockList.map((block, index) => {
+                                                switch (block.type) {
+                                                    case "Header":
+                                                        return <Header className='block' key={block.id} block={block} index={index} />;
+                                                        break;
+                                                    case "Paragraph":
+                                                        return <Paragraph className='block' key={block.id} block={block} index={index} />;
+                                                        break;
+                                                    case "Image":
+                                                        return <Image className='block' key={block.id} block={block} index={index} setImageEditBlock={setImageEditBlock} />;
+                                                        break;
+                                                    default:
+                                                        break;
+                                                }
+                                            })}
+                                        </Container>
+                                    </Col>
+                                    <Col md={5} className='BlockFormContent'>
+                                        {render_components ? <BlockForm imageEditBlock={imageEditBlock} setImageEditBlock={setImageEditBlock} blockList={blockList} addBlock={addBlock} /> : ''}
+                                    </Col>
+                                </>
+                            </blockDisabledContext.Provider>
                         </saveBlockContext.Provider>
                     </removeBlockContext.Provider>
                 </handleSortContext.Provider>

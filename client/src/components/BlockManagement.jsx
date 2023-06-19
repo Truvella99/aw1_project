@@ -19,7 +19,7 @@ function BlockForm(props) {
     // state to render or not the choice of the images, depending if add Image has been clicked or not
     const [showImages, setShowImages] = useState(false);
     // temporary client id for visualization (find the max id in the blockList array and add 1)
-    const [tempId,setTempId] = useState(blockList.reduce((max, obj) => (obj.id > max ? obj.id : max), -Infinity) + 1);
+    const [tempId,setTempId] = useState(blockList.reduce((max, obj) => (obj.id > max ? obj.id : max), 0) + 1);
     // function to add an empty Header block to the blockList
     function addHeader() {
         // temporary client id just for visualization, when sended to the server will be removed and created by the db
