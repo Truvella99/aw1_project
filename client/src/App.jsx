@@ -1,6 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import { useState,createContext, useEffect } from 'react'
+import { useState,createContext, useEffect,useContext } from 'react'
 import {NavHeader} from './components/Navbar'
 import {LoginForm} from './components/AuthComponents'
 import { BrowserRouter,Routes,Route,Navigate,Link } from 'react-router-dom' ;
@@ -158,18 +158,18 @@ function App() {
 }
 
 function DefaultRoute() {
+  // props to set the dirty state when changing page
+  const setDirty = useContext(SetDirtyContext);
   return(
-    <>
-      <Row className='default'>
+      <div className="position-absolute w-100 h-100 d-flex flex-column align-items-center justify-content-center">
         <Col>
           <h1>Nothing here...</h1>
           <p>This is not the route you are looking for!</p>
           <Link to="/">
-            <Button type="button" variant="success" className="btn btn-lg edit-button">Go back to the homepage</Button>
+            <Button type="button" variant="success" className="btn btn-lg edit-button" onClick={() => setDirty(true)}>Go back to the homepage</Button>
           </Link>
         </Col>
-      </Row>
-    </>
+      </div>
   );
 }
 

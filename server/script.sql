@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS "website" (
 -- Enrico, pass (user author of two pages)
 -- Giorgio, pass (user who has never created a page)
 -- Admin, pass (user with admin privileges)
--- Domenico, pass (plus any other requested info) ???
+-- Domenico, pass (other user that owns the remaining pages)
 INSERT INTO "users" VALUES (1,0,'enrico@gmail.com','Enrico','fec5af0cd2d70b363744cfa9f8113d6bd8c2d43217efcacd8ee520f305b4e0f1','f96ce3bf59ca10c0');
 INSERT INTO "users" VALUES (2,0,'giorgio@gmail.com','Giorgio','6b9e66080c3f65b8fa8e8ea0acd58597567593340fd6e0f040244145455e47c8','24bbf68f9e8cd7ce');
 INSERT INTO "users" VALUES (3,1,'admin@gmail.com','Admin','360a8d802d81b6ac3fe7fe235234c8a7937d9d1a2918c92e95642fd241dd34cd','b84ff66a0fbd3268');

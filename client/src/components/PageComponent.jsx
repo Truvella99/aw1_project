@@ -227,10 +227,10 @@ function PageComponent(props) {
         {render_components ?
           <Container className='buttons'>
             <Button type="submit">Submit form</Button>{' '}
-            <Link to={'/backoffice'}><Button variant="warning" /*onClick={() => {props.setEditFilm(undefined)}}*/>Close Form</Button></Link>
+            <Link to={'/backoffice'}><Button variant="warning" onClick={() => {setDirty(true)}}>Close Form</Button></Link>
           </Container> :
           <Container className='buttons'>
-            <Link to={user.id ? '/backoffice' : '/'}><Button variant="warning">Close</Button></Link>
+            <Link to={user.id ? '/backoffice' : '/'}><Button variant="warning" onClick={() => {setDirty(true)}}>Close</Button></Link>
           </Container>}
       </Form>
     </Container>

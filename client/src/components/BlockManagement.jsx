@@ -84,6 +84,9 @@ function BlockForm(props) {
     return (
         <>
             <ButtonGroup aria-label="Basic example">
+                {/* Here no setDirty to refresh data, in order to avoid that while i am editing the page maybe an admin
+                    change page title,author or publication date
+                    and i lost all the edit that i was doing */}
                 <Button variant="primary" onClick={() => addHeader()}>Add Header</Button>
                 <Button variant="success" onClick={() => addParagraph()}>Add Paragraph</Button>
                 <Button variant="info" onClick={() => {setShowImages(true); /* give priority to the user action if press add image after editing */ setImageEditBlock(undefined);}}>Add Image</Button>

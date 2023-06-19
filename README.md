@@ -368,8 +368,9 @@
 
 ## Users Credentials
 
-- enrico@gmail.com, pass (user author of two pages, 1 page published and 1 page draft)
-- giorgio@gmail.com, pass (user who has never created a page)
-- admin@gmail.com, pass (user with admin privileges)
-- domenico@gmail.com, pass (user author of the remaining 4 pages: 1 published,1 draft,2 programmed)
-
+| email | password | other_info |
+|------------------|----------|-------------|
+|enrico@gmail.com|pass|user author of two pages, 1 page published and 1 page draft|
+|giorgio@gmail.com|pass|user who has never created a page|
+|admin@gmail.com|pass|user with admin privileges|
+|domenico@gmail.com|pass|user author of the remaining 4 pages: 1 published,1 draft,2 programmed|

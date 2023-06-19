@@ -55,12 +55,12 @@ content-type: application/json
     },
     {
       "type": "Image",
-      "content": "imag1.jpg",
+      "content": "image1.jpg",
       "blockOrder": 2
     },
     {
       "type": "Image",
-      "content": "imge1.jpg",
+      "content": "image2.jpg",
       "blockOrder": 3
     }
   ]

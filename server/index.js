@@ -338,6 +338,18 @@ app.post('/api/pages', isLoggedIn,
         return res.status(422).json({ error: '2 Blocks have the same order.' });
       }
 
+      // check that there are no missing order in the block => (ex. blockorder,1,2,3,5)
+      let wrongOrders = [];
+      blocks.forEach((block,index) => {
+        if (block.blockOrder != index + 1) {
+          wrongOrders.push(block.blockOrder);
+        }
+      });
+
+      if (wrongOrders.length !== 0) {
+        return res.status(422).json({ error: `Wrong Block order: ${wrongOrders.join(' , ')}.`});
+      }
+
       // check that the blocks of type Image have a content that is into the image table
       const images = await getImagesName();
       if (images.error)
@@ -446,6 +458,18 @@ app.post('/api/pages/:id',
 
       if (same_order === true) {
         return res.status(422).json({ error: '2 Blocks have the same order.' });
+      }
+
+      // check that there are no missing order in the block => (ex. blockorder,1,2,3,5)
+      let wrongOrders = [];
+      blocks.forEach((block,index) => {
+        if (block.blockOrder != index + 1) {
+          wrongOrders.push(block.blockOrder);
+        }
+      });
+
+      if (wrongOrders.length !== 0) {
+        return res.status(422).json({ error: `Wrong Block order: ${wrongOrders.join(' , ')}.`});
       }
 
       // check that the blocks of type Image have a content that is into the image table

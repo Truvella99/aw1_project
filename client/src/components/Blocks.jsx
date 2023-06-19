@@ -35,6 +35,9 @@ function Header(props) {
                 onDragEnd={(event) => { handleSort(event) }}
                 style={{ borderTop: '1px solid black' }}>
                 <Col md={2} className='d-flex align-items-center justify-content-center'>
+                    {/* Here no setDirty to refresh data, in order to avoid that while i am editing the page maybe an admin
+                    change page title,author or publication date
+                    and i lost all the edit that i was doing */}
                     <Link><i className="bi bi-trash-fill" onClick={() => removeBlock(block)}></i></Link>
                 </Col>
                 <Col md={4}>
@@ -78,6 +81,9 @@ function Paragraph(props) {
                 onDragEnd={(event) => { handleSort(event) }}
                 style={{ borderTop: '1px solid black' }}>
                 <Col md={2} className='d-flex align-items-center justify-content-center'>
+                    {/* Here no setDirty to refresh data, in order to avoid that while i am editing the page maybe an admin
+                    change page title,author or publication date
+                    and i lost all the edit that i was doing */}
                     <Link><i className="bi bi-trash-fill" onClick={() => removeBlock(block)}></i></Link>
                 </Col>
                 <Col md={4}>
@@ -117,8 +123,14 @@ function Image(props) {
                 onDragEnd={(event) => { handleSort(event) }}
                 style={{ borderTop: '1px solid black' }}>
                 <Col md={2} className='d-flex align-items-center justify-content-center'>
+                    {/* Here no setDirty to refresh data, in order to avoid that while i am editing the page maybe an admin
+                    change page title,author or publication date
+                    and i lost all the edit that i was doing */}
                     <Link><i className="bi bi-trash-fill" onClick={() => removeBlock(block)}></i></Link>
                     {'  '}
+                    {/* Here no setDirty to refresh data, in order to avoid that while i am editing the page maybe an admin
+                    change page title,author or publication date
+                    and i lost all the edit that i was doing */}
                     <Link><i className="bi bi-pencil-fill" onClick={() => setImageEditBlock(block)}></i></Link>
                 </Col>
                 <Col md={4}>

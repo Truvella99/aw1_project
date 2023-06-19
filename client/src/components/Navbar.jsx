@@ -30,11 +30,12 @@ function NavHeader(props) {
     
     // function to save the website name persistently
     function saveWebsiteName(new_name) {
+        // disable name editing
+        setEditable(false);
         // click change website name without change nothing
         if (new_name !== '') {
-            // disable name editing
-            setEditable(false);
             props.updateWebsiteName(new_name);
+            setEditingName('');
         }
     }
 
@@ -66,7 +67,7 @@ function NavHeader(props) {
         <Navbar bg='success' variant='dark'>
             <Container fluid>
                 <Navbar.Brand className='fs-2' style={(isAdmin && editable) ? {backgroundColor: 'grey'} : {}} contentEditable={isAdmin && editable} suppressContentEditableWarning={true} onInput={(event) => { setEditingName(event.target.textContent) }}>{websiteName}</Navbar.Brand>
-                { isAdmin ? <><Button className='mx-2' variant='primary' onClick={() => saveWebsiteName(editingName)}>Change Website Name</Button> <Button className='mx-2' variant='warning' onClick={() => setEditable(true)}>Edit Website Name</Button></> : ''}
+                { isAdmin ? <><Button className='mx-2' variant='primary' onClick={() => {saveWebsiteName(editingName); setDirty(true);}}>Change Website Name</Button> <Button className='mx-2' variant='warning' onClick={() => {setEditable(true); setDirty(true);}}>Edit Website Name</Button></> : ''}
                 <Navbar.Toggle />
                 <Navbar.Collapse className="justify-content-end">
                     {username ? (<>

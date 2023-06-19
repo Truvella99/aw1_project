@@ -67,6 +67,8 @@ function PageElement(props) {
 
   // function to delete a Page
   function deletePage() {
+    // refresh data
+    setDirty(true);
     props.deletePage(page.id);
   }
 
@@ -113,8 +115,11 @@ function ChangeButton(props) {
 }
 
 function AddButton(props) {
+  // setDirty state shared with useContext hook
+  const setDirty = useContext(SetDirtyContext);
+
   return (
-    <Link to="/pages/add"><Button className='AddButton'>+</Button></Link>
+    <Link to="/pages/add"><Button className='AddButton' onClick={() => setDirty(true)}>+</Button></Link>
   );
 }
 
