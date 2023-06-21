@@ -31,9 +31,9 @@ const handleSortContext = createContext(null);
 const removeBlockContext = createContext(null);
 // handleSort shared context
 const saveBlockContext = createContext(null);
-// images shared context
+// images shared context (from page component to BlockForm for having all the images)
 const imagesBlockContext = createContext(null);
-// block disabled flag context
+// block disabled flag context (from page component to Header and Paragraph Block to disable/enable editing)
 const blockDisabledContext = createContext(null);
 
 export {

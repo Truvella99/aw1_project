@@ -21,9 +21,9 @@ async function logIn(credentials) {
       const user = await response.json();
       return ({
         id: user.id,
-        email: user.username,
+        email: user.email,
         isAdmin: user.isAdmin,
-        username: user.name
+        username: user.username
       });
     } else {
       // json object provided by the server with the error
@@ -46,9 +46,9 @@ async function getUserInfo() {
       const user = await response.json();
       return ({
         id: user.id,
-        email: user.username,
+        email: user.email,
         isAdmin: user.isAdmin,
-        username: user.name
+        username: user.username
       });
     } else {
       // json object provided by the server with the error

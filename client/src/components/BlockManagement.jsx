@@ -8,7 +8,7 @@ import { IMAGE_PATH } from "./Costants";
 function BlockForm(props) {
     // id of the page to be fetched
     const pageId = useParams().id;
-    // function to handle errors
+    // array of images content passed by PageComponent
     const images = useContext(imagesBlockContext);
     // function to save a block (update it)
     const saveBlock = useContext(saveBlockContext);
@@ -20,6 +20,7 @@ function BlockForm(props) {
     const [showImages, setShowImages] = useState(false);
     // temporary client id for visualization (find the max id in the blockList array and add 1)
     const [tempId,setTempId] = useState(blockList.reduce((max, obj) => (obj.id > max ? obj.id : max), 0) + 1);
+    console.log(tempId);
     // function to add an empty Header block to the blockList
     function addHeader() {
         // temporary client id just for visualization, when sended to the server will be removed and created by the db

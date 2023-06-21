@@ -13,7 +13,111 @@
 
 ## API Server
 
+### USERS API
+- POST `/api/sessions`
+  - Description: Create a new session starting from given credentials (no authentication required).
+
+    Request body: username and password for performing login (Content-Type: `application/json`).
+    <details>
+      <summary>Request Details</summary>
+      
+      ```
+      {
+        "username": "admin@gmail.com",
+        "password": "pass"
+      }
+      ```
+    </details>
+
+    Response: `200 OK` (success) or `401 Unauthorized` (error).
+
+    Response body: user information of the user that now is logged in (Content-Type: `application/json`).
+    <details>
+      <summary>Response Details</summary>
+
+      ```
+      {
+        "id": 3,
+        "email": "admin@gmail.com",
+        "isAdmin": 1,
+        "username": "Admin"
+      }
+      ```
+    </details>
+- GET `/api/sessions/current`
+  - Description: Verify if the given session is still valid and return the info about the logged-in user. A cookie with a VALID SESSION ID must be provided.
+
+    Request body: _None_ 
+
+    Response: `200 OK` (success) or `401 Unauthorized` (error).
+
+    Response body: user information of the current logged in user (Content-Type: `application/json`).
+    <details>
+      <summary>Response Details</summary>
+
+      ```
+      {
+        "id": 3,
+        "email": "admin@gmail.com",
+        "isAdmin": 1,
+        "username": "Admin"
+      }
+      ```
+    </details>
+- DELETE `/api/session/current`
+  - Description: Delete the current session. A cookie with a VALID SESSION ID must be provided.
+
+    Request body: _None_
+
+    Response: `200 OK` (success) or `401 Unauthorized` (error).
+
+    Response body: _None_
+- GET `/api/users`
+  - Description: Get All The Users of The Application. A cookie with a VALID SESSION ID must be provided.
+
+    Request body: _None_ 
+
+    Response: `200 OK` (success) or `401 Unauthorized` (error) or `403 Forbidden` (error) or `500 Internal Server Error` (generic error).
+
+    Response body: an array of userId,username pair (Content-Type: `application/json`).
+    <details>
+      <summary>Response Details</summary>
+
+      ```
+      [{
+        "id": 2,
+        "username": "Giorgio"
+      },
+      ...
+      ]
+      ```
+    </details>
+
 ### PAGES API
+- GET `/api/pages/backoffice`
+  - Description: Get all the pages for the backoffice visualization. A cookie with a VALID SESSION ID must be provided.
+
+    Request body: _None_
+
+    Response: `200 OK` (success) or `401 Unauthorized` (error) or `500 Internal Server Error` (generic error).
+
+    Response body: An array of objects, each describing a page. (Content-Type: `application/json`).
+    <details>
+      <summary>Response Details</summary>
+      
+      ```
+      [{
+          "id": 1,
+          "userId": 1,
+          "username": "Enrico",
+          "title": "Pagina1",
+          "creationDate": "2023-02-28",
+          "publicationDate": "2023-02-28",
+      },
+      ...
+      ]
+      ```
+    </details> 
 - GET `/api/pages/frontoffice`
   - Description: Get only-published pages for the frontoffice visualization (no authentication required).
 
@@ -21,329 +125,289 @@
 
     Response: `200 OK` (success) or `500 Internal Server Error` (generic error).
 
-    Response body: An array of objects, each describing a page.
-    ```
-    [{
-        "id": 1,
-        "userId": 1,
-        "username": "Enrico",
-        "title": "Pagina1",
-        "creationDate": "2023-02-28",
-        "publicationDate": "2023-02-28",
-    },
-    ...
-    ]
-    ``` 
-- GET `/api/pages/backoffice`
-  - Description: Get all the pages for the backoffice visualization (authentication required).
+    Response body: An array of objects, each describing a page. (Content-Type: `application/json`).
+    <details>
+      <summary>Response Details</summary>
+
+      ```
+      [{
+          "id": 1,
+          "userId": 1,
+          "username": "Enrico",
+          "title": "Pagina1",
+          "creationDate": "2023-02-28",
+          "publicationDate": "2023-02-28",
+      },
+      ...
+      ]
+      ```
+    </details> 
+- GET `/api/pages/backoffice/<id>`
+  - Description: Get a specific page, identified by the id `<id>`, along with the associated blocks (authentication required). A cookie with a VALID SESSION ID must be provided.
 
     Request body: _None_
 
-    Response: `200 OK` (success) or `500 Internal Server Error` (generic error).
+    Response: `200 OK` (success) or `401 Unauthorized` (error) or `404 Not Found` (not found error) or `422 Unprocessable Entity` (semantic error) or `500 Internal Server Error` (generic error).
 
-    Response body: An array of objects, each describing a page.
-    ```
-    [{
-        "id": 1,
-        "userId": 1,
-        "username": "Enrico",
-        "title": "Pagina1",
-        "creationDate": "2023-02-28",
-        "publicationDate": "2023-02-28",
-    },
-    ...
-    ]
-    ``` 
+    Response body: An object describing a page, with an array of objects, each describing a block. (Content-Type: `application/json`).
+    <details>
+      <summary>Response Details</summary>
+
+      ```
+      {
+          "id": 1,
+          "userId": 1,
+          "username": "Enrico",
+          "title": "Pagina1",
+          "creationDate": "2023-02-28",
+          "publicationDate": "2023-02-28",
+          "blocks" : [{
+              "id": 1,
+              "pageId": 1,
+              "type": "Header",
+              "content": "Ciao Sono Domenico",
+              "blockOrder": "1",
+          },
+          ...
+          ]
+      }
+      ```
+    </details>
 - GET `/api/pages/frontoffice/<id>`
   - Description: Get a specific published-only page, identified by the id `<id>`, along with the associated blocks (no authentication required).
 
     Request body: _None_
 
-    Response: `200 OK` (success) or `404 Not Found` (Page or Block Not Found) or `500 Internal Server Error` (generic error).
+    Response: `200 OK` (success) or `403 Forbidden` (error) or `404 Not Found` (not found error) or `422 Unprocessable Entity` (semantic error) or `500 Internal Server Error` (generic error).
 
-    Response body: An object describing a page, with an array of objects, each describing a block.
-    ```
-    {
-        "id": 1,
-        "userId": 1,
-        "username": "Enrico",
-        "title": "Pagina1",
-        "creationDate": "2023-02-28",
-        "publicationDate": "2023-02-28",
-        "blocks" : [{
-            "id": 1,
-            "pageId": 1,
-            "type": "Header",
-            "content": "Ciao Sono Domenico",
-            "blockOrder": "1",
-        },
-        ...
-        ]
-    }
-    ```
-- GET `/api/pages/backoffice/<id>`
-  - Description: Get a specific page, identified by the id `<id>`, along with the associated blocks (authentication required).
+    Response body: An object describing a page, with an array of objects, each describing a block. (Content-Type: `application/json`).
+    <details>
+      <summary>Response Details</summary>
 
-    Request body: _None_
-
-    Response: `200 OK` (success) or `404 Not Found` (Page or Block Not Found) or `500 Internal Server Error` (generic error).
-
-    Response body: An object describing a page, with an array of objects, each describing a block.
-    ```
-    {
-        "id": 1,
-        "userId": 1,
-        "username": "Enrico",
-        "title": "Pagina1",
-        "creationDate": "2023-02-28",
-        "publicationDate": "2023-02-28",
-        "blocks" : [{
-            "id": 1,
-            "pageId": 1,
-            "type": "Header",
-            "content": "Ciao Sono Domenico",
-            "blockOrder": "1",
-        },
-        ...
-        ]
-    }
-    ```
+      ```
+      {
+          "id": 1,
+          "userId": 1,
+          "username": "Enrico",
+          "title": "Pagina1",
+          "creationDate": "2023-02-28",
+          "publicationDate": "2023-02-28",
+          "blocks" : [{
+              "id": 1,
+              "pageId": 1,
+              "type": "Header",
+              "content": "Ciao Sono Domenico",
+              "blockOrder": "1",
+          },
+          ...
+          ]
+      }
+      ```
+    </details>
 - POST `/api/pages`
-  - Description: Create a new Page, along with the associated blocks.
+  - Description: Create a new Page, along with the associated blocks. A cookie with a VALID SESSION ID must be provided.
 
     Request body: An object representing a page and the associated blocks (Content-Type: `application/json`).
-    ```
-    {
-        "userId": 1,
-        "title": "Pagina1",
-        "creationDate": "2023-02-28",
-        "publicationDate": "2023-02-28",
-        "blocks" : [{
-            "type": "Header",
-            "content": "Ciao Sono Domenico",
-            "blockOrder": "1",
-        },
-        ...
-        ]
-    }
-    ```
+    <details>
+      <summary>Request Details</summary>
 
-    Response: `201 Created` (success) or `503 Service Unavailable` (generic error, e.g., when trying to insert a page with non-existent userId). If the request body is not valid, `422 Unprocessable Entity` (validation error).
+      ```
+      {
+          "userId": 1,
+          "username": "Enrico",
+          "title": "Pagina1",
+          "creationDate": "2023-02-28",
+          "publicationDate": "2023-02-28",
+          "blocks" : [{
+              "type": "Header",
+              "content": "Ciao Sono Domenico",
+              "blockOrder": "1",
+          },
+          ...
+          ]
+      }
+      ```
+    </details>
+
+    Response: `200 OK` (success) or `401 Unauthorized` (error) or `403 Forbidden` (error) or `404 Not Found` (not found error) or `422 Unprocessable Entity` (semantic error) or `500 Internal Server Error` (generic error).
 
     Response body: An object representing the inserted page and the associated blocks, notably with the newly assigned id by the database (Content-Type: `application/json`).
-    ```
-    {
-        "id": 1,
-        "userId": 1,
-        "title": "Pagina1",
-        "creationDate": "2023-02-28",
-        "publicationDate": "2023-02-28",
-        "blocks" : [{
-            "id": 1,
-            "pageId": 1,
-            "type": "Header",
-            "content": "Ciao Sono Domenico",
-            "blockOrder": "1",
-        },
-        ...
-        ]
-    }
-    ```
+    <details>
+      <summary>Response Details</summary>
+
+      ```
+      {
+          "id": 1,
+          "userId": 1,
+          "username": "Enrico",
+          "title": "Pagina1",
+          "creationDate": "2023-02-28",
+          "publicationDate": "2023-02-28",
+          "blocks" : [{
+              "id": 1,
+              "pageId": 1,
+              "type": "Header",
+              "content": "Ciao Sono Domenico",
+              "blockOrder": "1",
+          },
+          ...
+          ]
+      }
+      ```
+    </details>
 - POST `/api/pages/<id>`
-  - Description: Update a Page, identified by the id `<id>`, along with the associated blocks.
+  - Description: Update a Page, identified by the id `<id>`, along with the associated blocks. A cookie with a VALID SESSION ID must be provided.
 
     Request body: An object representing a page and the associated blocks (Content-Type: `application/json`).
-    ```
-    {
-      "id": 1,
-      "userId": 1,
-      "title": "pages1",
-      "creationDate": "2023-02-28",
-      "blocks": [
-        {
-          "pageId": 1,
-          "type": "Header",
-          "content": "Blog",
-          "blockOrder": 1
-        },
-        {
-          "pageId": 1,
-          "type": "Paragraph",
-          "content": "Ciao Sono Enrico",
-          "blockOrder": 2
-        }
-      ]
-    }
-    ```
+    <details>
+      <summary>Request Details</summary>
 
-    Response: `200 OK` (success) or `503 Service Unavailable` (generic error). If the request body is not valid, `422 Unprocessable Entity` (validation error).
+      ```
+      {
+        "id": 1,
+        "userId": 1,
+        "username": "Enrico",
+        "title": "pages1",
+        "creationDate": "2023-02-28",
+        "publicationDate": "2023-03-29",
+        "blocks": [
+          {
+            "pageId": 1,
+            "type": "Header",
+            "content": "Blog",
+            "blockOrder": 1
+          },
+          {
+            "pageId": 1,
+            "type": "Paragraph",
+            "content": "Ciao Sono Enrico",
+            "blockOrder": 2
+          }
+        ]
+      }
+      ```
+    </details>
 
-    Response body: An object representing the updated page (Content-Type: `application/json`).
-    ```
-    {
-      "id": 1,
-      "userId": 1,
-      "title": "pages1",
-      "creationDate": "2023-02-28",
-      "publicationDate": null,
-      "blocks": [
-        {
-          "id": 31,
-          "pageId": 1,
-          "type": "Header",
-          "content": "Blog",
-          "blockOrder": 1
-        },
-        {
-          "id": 32,
-          "pageId": 1,
-          "type": "Paragraph",
-          "content": "Ciao Sono Enrico",
-          "blockOrder": 2
-        }
-      ]
-    }
-    ```
+    Response: `200 OK` (success) or `401 Unauthorized` (error) or `403 Forbidden` (error) or `404 Not Found` (not found error) or `422 Unprocessable Entity` (semantic error) or `500 Internal Server Error` (generic error).
+
+
+    Response body: An object representing the updated page, notably with the newly assigned id by the database (Content-Type: `application/json`).
+    <details>
+      <summary>Response Details</summary>
+
+      ```
+      {
+        "id": 1,
+        "userId": 1,
+        "username": "Enrico",
+        "title": "pages1",
+        "creationDate": "2023-02-28",
+        "publicationDate": "2023-03-29",
+        "blocks": [
+          {
+            "id": 31,
+            "pageId": 1,
+            "type": "Header",
+            "content": "Blog",
+            "blockOrder": 1
+          },
+          {
+            "id": 32,
+            "pageId": 1,
+            "type": "Paragraph",
+            "content": "Ciao Sono Enrico",
+            "blockOrder": 2
+          }
+        ]
+      }
+      ```
+    </details>
 - DELETE `/api/pages/<id>`
-  - Description: Delete a Page, identified by the id `<id>`.
+  - Description: Delete a Page, identified by the id `<id>`. A cookie with a VALID SESSION ID must be provided.
 
     Request body: _None_
 
-    Response: `204 No Content` (success) or `503 Service Unavailable` (generic error).
+    Response: `200 OK` (success) or `401 Unauthorized` (error) or `403 Forbidden` (error) or `404 Not Found` (not found error) or `422 Unprocessable Entity` (semantic error) or `500 Internal Server Error` (generic error).
 
     Response body: _None_
-
-  
-
-### USERS API
-- POST `/api/sessions`
-  - Description: Create a new session starting from given credentials.
-
-    Request body:
-    ```
-    {
-      "username": "giorgio@gmail.com",
-      "password": "pass"
-    }
-    ```
-
-    Response: `200 OK` (success) or `500 Internal Server Error` (generic error).
-
-    Response body:
-    ```
-    {
-      "id": 2,
-      "username": "giorgio@gmail.com",
-      "isAdmin": 0,
-      "name": "Giorgio"
-    }
-    ```
-- GET `/api/sessions/current`
-  - Description: Verify if the given session is still valid and return the info about the logged-in user. A cookie with a VALID SESSION ID must be provided to get the info of the user authenticated in the current session.
-
-    Request body: _None_ 
-
-    Response: `201 Created` (success) or `401 Unauthorized` (error).
-
-    Response body:
-    ```
-    {
-      "id": 2,
-      "username": "giorgio@gmail.com",
-      "isAdmin": 0,
-      "name": "Giorgio"
-    }
-    ```
-- DELETE `/api/session/current`
-  - Description: Delete the current session. A cookie with a VALID SESSION ID must be provided.
-
-    Request body: _None_
-
-    Response: `200 OK` (success) or `500 Internal Server Error` (generic error).
-
-    Response body: _None_
-- GET `/api/users`
-  - Description: Get All The Users of The Application
-
-    Request body: _None_ 
-
-    Response: `200 OK` (success) or `500 Internal Server Error` (generic error).
-
-    Response body:
-    ```
-    [{
-      "id": 2,
-      "username": "Giorgio"
-    },
-    ...
-    ]
-    ```
 
 ### WEBSITE API
 - GET `/api/websites`
-  - Description: Get the website name.
+  - Description: Get the website name (no authentication required).
 
     Request body: _None_
 
     Response: `200 OK` (success) or `500 Internal Server Error` (generic error).
 
-    Response body: An object, describing the website name.
-    ```
-    {
-        "name": "CMSMALL",
-    }
-    ``` 
+    Response body: An object, describing the website name (Content-Type: `application/json`).
+    <details>
+      <summary>Response Details</summary>
+      
+      ```
+      {
+          "name": "CMSMALL",
+      }
+      ```
+    </details>
 - PUT `/api/websites/<name>`
-  - Description: Update the website name, with the new `<name>`.
+  - Description: Update the website name, with the new `<name>`. A cookie with a VALID SESSION ID must be provided.
 
     Request body: _None_
 
-    Response: `200 OK` (success) or `500 Internal Server Error` (generic error).
+    Response: `200 OK` (success) or `401 Unauthorized` (error) or `403 Forbidden` (error) or `422 Unprocessable Entity` (semantic error) or `500 Internal Server Error` (generic error).
 
-    Response body: An object, describing the website name.
-    ```
-    {
-        "name": "NEWNAME",
-    }
-    ``` 
+    Response body: An object, describing the just updated website name (Content-Type: `application/json`).
+    <details>
+      <summary>Response Details</summary>
+
+      ```
+      {
+          "name": "NEWNAME",
+      }
+      ```
+    </details> 
 ### IMAGES API
 - GET `/api/images`
-  - Description: Get all the images relative path.
+  - Description: Get all the images relative path (no authentication required).
 
     Request body: _None_
 
     Response: `200 OK` (success) or `500 Internal Server Error` (generic error).
 
-    Response body: An array with each element describing the image file name.
-    ```
-    [
-      "image1.jpg",
-      "image2.jpg",
-      ...
-    ]
-    ``` 
+    Response body: An array with each element describing the image file name (Content-Type: `application/json`).
+    <details>
+      <summary>Response Details</summary>
+
+      ```
+      [
+        "image1.jpg",
+        "image2.jpg",
+        ...
+      ]
+      ```
+    </details> 
 ## Database Tables
 
-- Table `pages` that contains:
+- Table `pages`, used to store all the pages, that contains:
   - `id`: primary key of the page
   - `userId`: id that idetifies the user who owns the page
   - `title`: title of the page
   - `creationDate`: creation date of the page
   - `publicationDate`: publication date of the page (optional)
-- Table `blocks` that contains:
+- Table `blocks`, used to store all the blocks related to the pages, that contains:
   - `id`: primary key of the block
   - `pageId`: id that idetifies the page who owns the block
   - `type`: type of the block (Header,Paragraph,Image)
   - `content`: content of the block
   - `blockOrder`: blockOrder of the block inside the page 
-- Table `users` that contains:
+- Table `users`, used to store all the users, that contains:
   - `id`: primary key of the user
   - `isAdmin`: flag that tells if the user is an Admin or not
   - `email`: email of the user
   - `username`: name of the user
   - `hash`: hashed password of the user 
   - `salt`: salt of the user, used for unique hashing 
-- Table `website` that contains:
+- Table `website`, used to store the website name, that contains:
   - `name`: name of the website, editable by an Admin
 
 ## Main React Components
@@ -359,8 +423,6 @@
 - `Paragraph` (in `components/Blocks.jsx`): component used to display blocks of type Paragraph, inside the PageContent
 - `Image` (in `components/Blocks.jsx`): component used to display blocks of type Image, inside the PageContent
 - `BlockForm` (in `BlockManagement.jsx`): component used to add new block of various types and select new image when editing a `Image` type block.
-
-(only _main_ components, minor ones may be skipped)
 
 ## Screenshot
 

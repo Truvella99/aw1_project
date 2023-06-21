@@ -18,24 +18,24 @@ GET http://localhost:3001/api/sessions/current HTTP/1.1
 DELETE http://localhost:3001/api/sessions/current HTTP/1.1
 ###
 
-## Get All The Authors
-GET http://localhost:3001/api/authors HTTP/1.1
-###
-
-## Get all the pages for the frontoffice visualization.
-GET http://localhost:3001/api/pages/frontoffice HTTP/1.1
+## Get All The Users
+GET http://localhost:3001/api/users HTTP/1.1
 ###
 
 ## Get all the pages for the backoffice visualization.
 GET http://localhost:3001/api/pages/backoffice HTTP/1.1
 ###
 
-## Get a specific only-published page (front office), identified by the id <id>, along with the associated blocks.
-GET http://localhost:3001/api/pages/frontoffice/5 HTTP/1.1
+## Get all the pages for the frontoffice visualization.
+GET http://localhost:3001/api/pages/frontoffice HTTP/1.1
 ###
 
 ## Get a specific page (back office), identified by the id <id>, along with the associated blocks.
 GET http://localhost:3001/api/pages/backoffice/1 HTTP/1.1
+###
+
+## Get a specific only-published page (front office), identified by the id <id>, along with the associated blocks.
+GET http://localhost:3001/api/pages/frontoffice/5 HTTP/1.1
 ###
 
 ## Create a new Page, along with the associated blocks.
@@ -44,6 +44,7 @@ content-type: application/json
 
 {
   "userId" : 1,
+  "username": "Enrico",
   "title": "Nuova Pagina",
   "creationDate": "2023-02-28",
   "publicationDate": "2023-02-28",
@@ -74,8 +75,10 @@ content-type: application/json
 {
   "id": 1,
   "userId" : 1,
+  "username": "Enrico",
   "title": "pages1",
   "creationDate": "2023-02-28",
+  "publicationDate": "2023-03-29",
   "blocks": [
     {
       "pageId": 1,

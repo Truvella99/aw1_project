@@ -25,8 +25,8 @@ function PageComponent(props) {
   const setDirty = useContext(SetDirtyContext);
   // isAdmin attribute of the user
   const isAdmin = user.isAdmin;
-  // various authors ({id,name}) of the application, loaded if there are admin permissions
-  const [authors, setAuthors] = useState([]);
+  // various users ({id,name}) of the application, loaded if there are admin permissions
+  const [users, setUsers] = useState([]);
   // state to mantain all the images available
   const [images, setImages] = useState([]);
   // state of the validation of the form
@@ -88,8 +88,8 @@ function PageComponent(props) {
     };
     async function getUsers() {
       try {
-        const authors = await API.getUsers();
-        setAuthors(authors);
+        const users = await API.getUsers();
+        setUsers(users);
       } catch (err) {
         handleError(err);
       }
@@ -154,7 +154,6 @@ function PageComponent(props) {
             const send_page = { id: undefined, userId: page.userId || user.id, username: author, title: title, creationDate: creationDate, publicationDate: publicationDate ? publicationDate : undefined };
             send_page.blocks = blockList.map((block, index) => {
               return {
-                pageId: block.pageId,
                 type: block.type,
                 content: block.content,
                 blockOrder: index + 1
@@ -198,7 +197,7 @@ function PageComponent(props) {
                     {author}
                   </Dropdown.Toggle>
                   <Dropdown.Menu>
-                    {authors.map((author, index) => {
+                    {users.map((author, index) => {
                       // onClick we change the author of the current page
                       // author state for interfaces and 
                       return <Dropdown.Item key={index} onClick={() => { setPage(Object.assign({}, page, { userId: author.id }, { username: author.username })); setAuthor(author.username); }}>{author.username}</Dropdown.Item>;

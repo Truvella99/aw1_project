@@ -21,7 +21,7 @@ function NavHeader(props) {
     const isAdmin = (user.isAdmin === 1);
     // error message state for handling errors
     const HandleError = useContext(HandleErrorContext);
-    // name of the website state and state that handle the initial attempt to see if a user is already logged in
+    // name of the website state
     const {websiteName} = props;
     // state for edit the websiteName field
     const [editable,setEditable] = useState(false);
@@ -66,8 +66,15 @@ function NavHeader(props) {
         <>
         <Navbar bg='success' variant='dark'>
             <Container fluid>
-                <Navbar.Brand className='fs-2' style={(isAdmin && editable) ? {backgroundColor: 'grey'} : {}} contentEditable={isAdmin && editable} suppressContentEditableWarning={true} onInput={(event) => { setEditingName(event.target.textContent) }}>{websiteName}</Navbar.Brand>
-                { isAdmin ? <><Button className='mx-2' variant='primary' onClick={() => {saveWebsiteName(editingName); setDirty(true);}}>Change Website Name</Button> <Button className='mx-2' variant='warning' onClick={() => {setEditable(true); setDirty(true);}}>Edit Website Name</Button></> : ''}
+                <Navbar.Brand key={editable} className='fs-2' style={(isAdmin && editable) ? {backgroundColor: 'grey'} : {}} contentEditable={isAdmin && editable} suppressContentEditableWarning={true} onInput={(event) => { setEditingName(event.target.textContent) }}>{websiteName}</Navbar.Brand>
+                { isAdmin ? 
+                (<>
+                    {editable ? <>  <Button className='mx-2' variant='primary' onClick={() => {saveWebsiteName(editingName); setDirty(true);}}>Submit</Button>
+                                    <Button className='mx-2' variant='warning' onClick={() => {setEditable(false); setDirty(true);}}>Cancel</Button>
+                                </> :
+                    <Button className='mx-2' variant='primary' onClick={() => {setEditable(true); setDirty(true);}}>Edit Website Name</Button>}
+                </>) 
+                : ''}
                 <Navbar.Toggle />
                 <Navbar.Collapse className="justify-content-end">
                     {username ? (<>

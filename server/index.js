@@ -60,10 +60,10 @@ const LocalStrategy = require('passport-local');                   // authentica
 /** Set up authentication strategy to search in the DB a user with a matching password.
  * The user object will contain other information extracted by the method usersDao.getUser (i.e., id, username, name).
  **/
-passport.use(new LocalStrategy(async function verify(username, password, callback) {
-  const user = await usersDao.getUser(username, password)
+passport.use(new LocalStrategy(async function verify(email, password, callback) {
+  const user = await usersDao.getUser(email, password)
   if (!user)
-    return callback(null, false, 'Incorrect username or password');
+    return callback(null, false, 'Incorrect email or password');
 
   return callback(null, user); // NOTE: user info in the session (all fields returned by usersDao.getUser, i.e, id, username, name)
 }));
@@ -144,9 +144,9 @@ app.get('/api/sessions/current', (req, res) => {
 
 // DELETE /api/session/current
 // This route is used for loggin out the current user.
-app.delete('/api/sessions/current', (req, res) => {
+app.delete('/api/sessions/current', isLoggedIn, (req, res) => {
   req.logout(() => {
-    res.status(200).json({});
+    res.status(200).json(null);
   });
 });
 
@@ -156,7 +156,7 @@ app.get('/api/users', isLoggedIn
   ,(req, res) => {
   // if not admin, return permission denied error
   if(!req.user.isAdmin) {
-    return res.status(401).json({ error: "Cannot Get all The Users." });
+    return res.status(403).json({ error: "Cannot Get all The Users." });
   }
   // Get all the users
   usersDao.getUsers()
@@ -259,7 +259,7 @@ app.get('/api/pages/frontoffice/:id', [
     const publicationDate = dayjs(page.publicationDate);
     const today = dayjs();
     if (!(publicationDate.isBefore(today, 'day') || publicationDate.isSame(today, 'day'))) {
-      return res.status(401).json({ error: "Don't Have permissions to retrieve this Page." });
+      return res.status(403).json({ error: "Don't Have permissions to retrieve this Page." });
     }
     // retrieve the blocks of the page
     const blocks = await blocksDao.getBlocksByPageId(pageId);
@@ -302,7 +302,7 @@ app.post('/api/pages', isLoggedIn,
         return res.status(404).json(user);
       // check if this id is the same of authenticated user (not an Admin), otherwise it's ok
       if (!req.user.isAdmin && userId !== req.user.id) {
-        return res.status(401).json({ error: "Cannot Create a Page for Other Users" });
+        return res.status(403).json({ error: "Cannot Create a Page for Other Users" });
       }
 
       // check if publication date is before creation date 
@@ -423,7 +423,7 @@ app.post('/api/pages/:id',
         return res.status(404).json(user);
       // check if this id is the same of authenticated user (not an Admin), otherwise it's ok
       if (!req.user.isAdmin && userId !== req.user.id) {
-        return res.status(401).json({ error: "Cannot Update a Page for Other Users" });
+        return res.status(403).json({ error: "Cannot Update a Page for Other Users" });
       }
 
       // check if publication date is before creation date 
@@ -531,15 +531,17 @@ app.delete('/api/pages/:id',
       // check that the page you want to delete exist
       // if the page exist and has not been cancelled, then it is a permission denied error
       const page_exist = await pagesDao.getPage(req.params.id);
-      // if page does not exist don't even try to delete it
+      // if page does not exist return 404 not found error
       if (!page_exist.error) {
         // page exist, delete it (ON DELETE CASCADE, SO DELETE ALSO THE BLOCKS)
         const result = await pagesDao.deletePage(req.user.isAdmin, req.user.id, req.params.id);
         if (result === null)
-          return res.status(200).json({});
+          return res.status(200).json(null);
         else
           // page exist and has not been deleted, permission error
-          return res.status(401).json({ error: "Cannot Delete a Page for Other Users" });
+          return res.status(403).json({ error: "Cannot Delete a Page for Other Users" });
+      } else {
+          return res.status(404).json(page_exist);
       }
     } catch (err) {
       res.status(500).json({ error: `Database error during the deletion of page ${req.params.id}: ${err} ` });
@@ -577,7 +579,7 @@ app.put('/api/websites/:name',
     try {
       // if not admin return permission denied error
       if (!req.user.isAdmin) {
-        return res.status(401).json({ error: "Cannot Update Website Name." });
+        return res.status(403).json({ error: "Cannot Update Website Name." });
       }
       const result = await websiteDao.updateWebsiteName(req.params.name, req.user.isAdmin);
       if (result.error)
