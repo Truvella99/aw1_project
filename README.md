@@ -77,7 +77,7 @@
 
     Request body: _None_ 
 
-    Response: `200 OK` (success) or `401 Unauthorized` (error) or `403 Forbidden` (error) or `500 Internal Server Error` (generic error).
+    Response: `200 OK` (success) or `401 Unauthorized` (error) or `403 Forbidden` (error) or `503 Service Unavailable` (Database error).
 
     Response body: an array of userId,username pair (Content-Type: `application/json`).
     <details>
@@ -99,7 +99,7 @@
 
     Request body: _None_
 
-    Response: `200 OK` (success) or `401 Unauthorized` (error) or `500 Internal Server Error` (generic error).
+    Response: `200 OK` (success) or `401 Unauthorized` (error) or `503 Service Unavailable` (Database error).
 
     Response body: An array of objects, each describing a page. (Content-Type: `application/json`).
     <details>
@@ -123,7 +123,7 @@
 
     Request body: _None_
 
-    Response: `200 OK` (success) or `500 Internal Server Error` (generic error).
+    Response: `200 OK` (success) or `503 Service Unavailable` (Database error).
 
     Response body: An array of objects, each describing a page. (Content-Type: `application/json`).
     <details>
@@ -147,7 +147,7 @@
 
     Request body: _None_
 
-    Response: `200 OK` (success) or `401 Unauthorized` (error) or `404 Not Found` (not found error) or `422 Unprocessable Entity` (semantic error) or `500 Internal Server Error` (generic error).
+    Response: `200 OK` (success) or `401 Unauthorized` (error) or `404 Not Found` (not found error) or `422 Unprocessable Entity` (semantic error) or `503 Service Unavailable` (Database error) or `500 Internal Server Error` (generic error).
 
     Response body: An object describing a page, with an array of objects, each describing a block. (Content-Type: `application/json`).
     <details>
@@ -178,7 +178,7 @@
 
     Request body: _None_
 
-    Response: `200 OK` (success) or `403 Forbidden` (error) or `404 Not Found` (not found error) or `422 Unprocessable Entity` (semantic error) or `500 Internal Server Error` (generic error).
+    Response: `200 OK` (success) or `403 Forbidden` (error) or `404 Not Found` (not found error) or `422 Unprocessable Entity` (semantic error) or `503 Service Unavailable` (Database error) or `500 Internal Server Error` (generic error).
 
     Response body: An object describing a page, with an array of objects, each describing a block. (Content-Type: `application/json`).
     <details>
@@ -229,7 +229,7 @@
       ```
     </details>
 
-    Response: `200 OK` (success) or `401 Unauthorized` (error) or `403 Forbidden` (error) or `404 Not Found` (not found error) or `422 Unprocessable Entity` (semantic error) or `500 Internal Server Error` (generic error).
+    Response: `200 OK` (success) or `401 Unauthorized` (error) or `403 Forbidden` (error) or `404 Not Found` (not found error) or `422 Unprocessable Entity` (semantic error) or `503 Service Unavailable` (Unavailability error) or `500 Internal Server Error` (generic error).
 
     Response body: An object representing the inserted page and the associated blocks, notably with the newly assigned id by the database (Content-Type: `application/json`).
     <details>
@@ -272,13 +272,11 @@
         "publicationDate": "2023-03-29",
         "blocks": [
           {
-            "pageId": 1,
             "type": "Header",
             "content": "Blog",
             "blockOrder": 1
           },
           {
-            "pageId": 1,
             "type": "Paragraph",
             "content": "Ciao Sono Enrico",
             "blockOrder": 2
@@ -288,7 +286,7 @@
       ```
     </details>
 
-    Response: `200 OK` (success) or `401 Unauthorized` (error) or `403 Forbidden` (error) or `404 Not Found` (not found error) or `422 Unprocessable Entity` (semantic error) or `500 Internal Server Error` (generic error).
+    Response: `200 OK` (success) or `401 Unauthorized` (error) or `403 Forbidden` (error) or `404 Not Found` (not found error) or `422 Unprocessable Entity` (semantic error) or `503 Service Unavailable` (Unavailability error) or `500 Internal Server Error` (generic error).
 
 
     Response body: An object representing the updated page, notably with the newly assigned id by the database (Content-Type: `application/json`).
@@ -327,7 +325,7 @@
 
     Request body: _None_
 
-    Response: `200 OK` (success) or `401 Unauthorized` (error) or `403 Forbidden` (error) or `404 Not Found` (not found error) or `422 Unprocessable Entity` (semantic error) or `500 Internal Server Error` (generic error).
+    Response: `200 OK` (success) or `401 Unauthorized` (error) or `403 Forbidden` (error) or `404 Not Found` (not found error) or `422 Unprocessable Entity` (semantic error) or `503 Service Unavailable` (Database error) or `500 Internal Server Error` (generic error).
 
     Response body: _None_
 
@@ -337,7 +335,7 @@
 
     Request body: _None_
 
-    Response: `200 OK` (success) or `500 Internal Server Error` (generic error).
+    Response: `200 OK` (success) or `503 Service Unavailable` (Database error).
 
     Response body: An object, describing the website name (Content-Type: `application/json`).
     <details>
@@ -354,7 +352,7 @@
 
     Request body: _None_
 
-    Response: `200 OK` (success) or `401 Unauthorized` (error) or `403 Forbidden` (error) or `422 Unprocessable Entity` (semantic error) or `500 Internal Server Error` (generic error).
+    Response: `200 OK` (success) or `401 Unauthorized` (error) or `403 Forbidden` (error) or `404 Not Found` (not found error) or `422 Unprocessable Entity` (semantic error) or `503 Service Unavailable` (Database error) or `500 Internal Server Error` (generic error).
 
     Response body: An object, describing the just updated website name (Content-Type: `application/json`).
     <details>
@@ -372,7 +370,7 @@
 
     Request body: _None_
 
-    Response: `200 OK` (success) or `500 Internal Server Error` (generic error).
+    Response: `200 OK` (success) or `503 Service Unavailable` (Unavailability error).
 
     Response body: An array with each element describing the image file name (Content-Type: `application/json`).
     <details>
@@ -426,7 +424,10 @@
 
 ## Screenshot
 
-![Screenshot](./img/screenshot.jpg)
+### Add New Page
+![Screenshot](./addPage.png)
+### List Of All Pages
+![Screenshot](./pageList.png)
 
 ## Users Credentials
 

@@ -25,7 +25,7 @@ const getImagesName = () => {
   return new Promise((resolve, reject) => {
     fs.readdir(staticFolderPath, (err, files) => {
       if (err) {
-        reject({ error: `Error reading directory for getting all images: ${err}` });
+        reject({ error: 'Error reading directory for getting all images.' });
         return;
       }
 
@@ -34,14 +34,6 @@ const getImagesName = () => {
     });
   });
 };
-/**
- * The "delay" middleware introduces some delay in server responses. To change the delay change the value of "delayTime" (specified in milliseconds).
- * This middleware could be useful for debug purposes, to enabling it uncomment the following lines.
- */
-/*
-const delay = require('express-delay');
-app.use(delay(200,2000));
-*/
 
 /** Set up and enable Cross-Origin Resource Sharing (CORS) **/
 const corsOptions = {
@@ -161,7 +153,7 @@ app.get('/api/users', isLoggedIn
   // Get all the users
   usersDao.getUsers()
     .then(authors => res.json(authors))
-    .catch((err) => res.status(500).json(err)); // always return a json and an error message
+    .catch(() => res.status(503).json({error: 'Database Error in Retrieving all Users'}));
 }
 );
 
@@ -177,7 +169,7 @@ app.get('/api/pages/backoffice',
     pagesDao.getPages()
       // NOTE: "invalid dates" (i.e., missing dates) are set to null during JSON serialization
       .then(pages => res.json(pages))
-      .catch((err) => res.status(500).json(err)); // always return a json and an error message
+      .catch(() => res.status(503).json({error: 'Database Error in retrieving Pages'}));
   }
 );
 
@@ -200,7 +192,7 @@ app.get('/api/pages/frontoffice',
         });
         return res.json(front_pages);
       })
-      .catch((err) => res.status(500).json(err)); // always return a json and an error message
+      .catch(() => res.status(503).json({error: 'Database Error in retrieving Pages'}));
   }
 );
 
@@ -220,12 +212,12 @@ app.get('/api/pages/backoffice/:id',
     try {
       // check if the page exists
       const pageId = req.params.id;
-      const page = await pagesDao.getPage(pageId);
+      const page = await pagesDao.getPage(pageId).catch(() => { throw {unavailable: `Database Error in retrieving Page ${pageId}`}});
       if (page.error)
         return res.status(404).json(page);
 
       // retrieve the blocks of the page
-      const blocks = await blocksDao.getBlocksByPageId(pageId);
+      const blocks = await blocksDao.getBlocksByPageId(pageId).catch(() => { throw {unavailable: `Database Error in retrieving Blocks of Page ${pageId}`}});
       if (blocks.error)
         return res.status(404).json(blocks);
 
@@ -233,7 +225,10 @@ app.get('/api/pages/backoffice/:id',
       page.blocks = blocks;
       return res.json(page);
     } catch (err) {
-      res.status(500).json({ error: `Error during the retrieve of page ${req.params.id}` });
+      if (err.unavailable)
+        res.status(503).json({error: err.unavailable});
+      else
+        res.status(500).json({ error: `Error during the retrieve of page ${req.params.id}` });
     }
   }
 );
@@ -252,7 +247,7 @@ app.get('/api/pages/frontoffice/:id', [
   try {
     // check if the page exists
     const pageId = req.params.id;
-    const page = await pagesDao.getPage(pageId);
+    const page = await pagesDao.getPage(pageId).catch(() => { throw {unavailable: `Database Error in retrieving Page ${pageId}`}});
     if (page.error)
       return res.status(404).json(page);
     // check that is published, otherwise return permission denied
@@ -262,7 +257,7 @@ app.get('/api/pages/frontoffice/:id', [
       return res.status(403).json({ error: "Don't Have permissions to retrieve this Page." });
     }
     // retrieve the blocks of the page
-    const blocks = await blocksDao.getBlocksByPageId(pageId);
+    const blocks = await blocksDao.getBlocksByPageId(pageId).catch(() => { throw {unavailable: `Database Error in retrieving Blocks of Page ${pageId}`}});
     if (blocks.error)
       return res.status(404).json(blocks);
 
@@ -270,7 +265,10 @@ app.get('/api/pages/frontoffice/:id', [
     page.blocks = blocks;
     return res.json(page);
   } catch (err) {
-    res.status(500).json({ error: `Error during the retrieve of page ${req.params.id}` });
+    if (err.unavailable)
+      res.status(503).json({error: err.unavailable});
+    else
+      res.status(500).json({ error: `Error during the retrieve of page ${req.params.id}` });
   }
 }
 );
@@ -297,7 +295,7 @@ app.post('/api/pages', isLoggedIn,
     try {
       // check if user id exists
       const userId = req.body.userId;
-      const user = await usersDao.getUserById(userId);
+      const user = await usersDao.getUserById(userId).catch(() => { throw {unavailable:`Database Error in retrieving User ${userId}`}});
       if (user.error)
         return res.status(404).json(user);
       // check if this id is the same of authenticated user (not an Admin), otherwise it's ok
@@ -351,7 +349,7 @@ app.post('/api/pages', isLoggedIn,
       }
 
       // check that the blocks of type Image have a content that is into the image table
-      const images = await getImagesName();
+      const images = await getImagesName().catch(() => { throw {unavailable: 'Server: Unable to Retrieve all Images'}});
       if (images.error)
         return res.status(404).json(images);
 
@@ -368,12 +366,12 @@ app.post('/api/pages', isLoggedIn,
       }
 
       // create the page
-      const new_page = await pagesDao.insertPage(page);
+      const new_page = await pagesDao.insertPage(page).catch(() => { throw {unavailable: 'Database Error in creating Page'}});
 
       // create the blocks
       const new_blocks = await Promise.all(blocks.map(async (block) => {
         block.pageId = new_page.id;
-        return await blocksDao.insertBlock(block);
+        return await blocksDao.insertBlock(block).catch(() => { throw {unavailable: `Database Error in creating Blocks`}});
       }));
 
       // construct the returning object
@@ -381,7 +379,10 @@ app.post('/api/pages', isLoggedIn,
 
       res.json(new_page);
     } catch (err) {
-      res.status(500).json({ error: `Database error during the creation of page: ${err}` });
+      if (err.unavailable)
+        res.status(503).json({error: err.unavailable});
+      else
+        res.status(500).json({ error: 'Error during the creation of page' });
     }
   }
 );
@@ -399,7 +400,6 @@ app.post('/api/pages/:id',
     check('creationDate').isLength({ min: 10, max: 10 }).isISO8601({ strict: true }),
     check('publicationDate').isLength({ min: 10, max: 10 }).isISO8601({ strict: true }).optional(),
     check('blocks.*.id').optional().isInt(),
-    check('blocks.*.pageId').isInt(),
     check('blocks.*.type').isIn(['Header', 'Paragraph', 'Image']),
     check('blocks.*.content').notEmpty(),
     check('blocks.*.blockOrder').isInt()
@@ -418,7 +418,7 @@ app.post('/api/pages/:id',
     try {
       // check if user id exists
       const userId = req.body.userId;
-      const user = await usersDao.getUserById(userId);
+      const user = await usersDao.getUserById(userId).catch(() => { throw {unavailable: `Database Error in retrieving User ${userId}`}});
       if (user.error)
         return res.status(404).json(user);
       // check if this id is the same of authenticated user (not an Admin), otherwise it's ok
@@ -473,7 +473,7 @@ app.post('/api/pages/:id',
       }
 
       // check that the blocks of type Image have a content that is into the image table
-      const images = await getImagesName();
+      const images = await getImagesName().catch(() => { throw {unavailable: 'Server: Unable to retrieve all Images'}});
       if (images.error)
         return res.status(404).json(images);
 
@@ -490,18 +490,18 @@ app.post('/api/pages/:id',
       }
 
       // update the page
-      const up_page = await pagesDao.updatePage(req.user.isAdmin, req.user.id, page.id, page);
+      const up_page = await pagesDao.updatePage(req.user.isAdmin, req.user.id, page.id, page).catch(() => { throw {unavailable: `Database Error in Updating Page ${page.id}`}});
       if (up_page.error)
         return res.status(404).json(up_page);
 
       // delete all blocks of the page
-      const num_deleted = await blocksDao.deleteAllPageBlocks(up_page.id);
+      const num_deleted = await blocksDao.deleteAllPageBlocks(up_page.id).catch(() => { throw {unavailable: `Database Error in Deleting all Blocks of Page ${up_page.id}`}});
       if (num_deleted.error)
         return res.status(404).json(num_deleted);
 
       // insert the blocks from scratch
       const new_blocks = await Promise.all(blocks.map(async (block) => {
-        return await blocksDao.insertBlock(block);
+        return await blocksDao.insertBlock(block).catch(() => { throw {unavailable: 'Database Error in Inserting new Blocks From Scratch'}});
       }));
 
       // construct the returning object
@@ -510,7 +510,10 @@ app.post('/api/pages/:id',
       // return it
       res.json(up_page);
     } catch (err) {
-      res.status(500).json({ error: `Database error during the update of page ${req.params.id}: ${err}` });
+      if (err.unavailable)
+        res.status(503).json({error: err.unavailable});
+      else
+        res.status(500).json({ error: `Error during the update of page ${req.params.id}` });
     }
   }
 );
@@ -530,11 +533,11 @@ app.delete('/api/pages/:id',
     try {
       // check that the page you want to delete exist
       // if the page exist and has not been cancelled, then it is a permission denied error
-      const page_exist = await pagesDao.getPage(req.params.id);
+      const page_exist = await pagesDao.getPage(req.params.id).catch(() => { throw {unavailable: `Database Error in retrieving Page ${req.params.id}`}});
       // if page does not exist return 404 not found error
       if (!page_exist.error) {
         // page exist, delete it (ON DELETE CASCADE, SO DELETE ALSO THE BLOCKS)
-        const result = await pagesDao.deletePage(req.user.isAdmin, req.user.id, req.params.id);
+        const result = await pagesDao.deletePage(req.user.isAdmin, req.user.id, req.params.id).catch(() => { throw {unavailable: `Database Error in Deleting Page ${req.params.id} and relative Blocks`}});
         if (result === null)
           return res.status(200).json(null);
         else
@@ -544,7 +547,10 @@ app.delete('/api/pages/:id',
           return res.status(404).json(page_exist);
       }
     } catch (err) {
-      res.status(500).json({ error: `Database error during the deletion of page ${req.params.id}: ${err} ` });
+      if (err.unavailable)
+        res.status(503).json({error: err.unavailable});
+      else
+        res.status(500).json({ error: `Error during the deletion of page ${req.params.id}` });
     }
   }
 );
@@ -559,7 +565,7 @@ app.get('/api/websites',
       const result = await websiteDao.getWebsiteName();
       res.json(result);
     } catch (err) {
-      res.status(500).json({ error: `Database error during the get of website name : ${err} ` });
+      res.status(503).json({ error: `Database error in retrieving the website name` });
     }
   }
 );
@@ -581,13 +587,16 @@ app.put('/api/websites/:name',
       if (!req.user.isAdmin) {
         return res.status(403).json({ error: "Cannot Update Website Name." });
       }
-      const result = await websiteDao.updateWebsiteName(req.params.name, req.user.isAdmin);
+      const result = await websiteDao.updateWebsiteName(req.params.name, req.user.isAdmin).catch(() => { throw {unavailable: 'Database error during the update of website name'}});
       if (result.error)
         res.status(404).json(result);
       else
         res.json(result);
     } catch (err) {
-      res.status(500).json({ error: `Database error during the update of website name : ${err} ` });
+      if (err.unavailable)
+        res.status(503).json({error: err.unavailable});
+      else
+        res.status(500).json({ error: 'Error during the updating of website name' });
     }
   }
 );
@@ -602,7 +611,7 @@ app.get('/api/images',
       const result = await getImagesName();
       res.json(result);
     } catch (err) {
-      res.status(500).json(err);
+      res.status(503).json({error: 'Server: Unable to Retrieve all Images'});
     }
   }
 );

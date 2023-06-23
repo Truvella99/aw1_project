@@ -142,7 +142,6 @@ function PageComponent(props) {
             const send_page = { id: pageId, userId: page.userId || user.id, username: author, title: title, creationDate: creationDate, publicationDate: publicationDate ? publicationDate : undefined };
             send_page.blocks = blockList.map((block, index) => {
               return {
-                pageId: block.pageId,
                 type: block.type,
                 content: block.content,
                 blockOrder: index + 1

@@ -7,7 +7,7 @@ const db = require('./db');
 // This function returns all blocks of a given page.
 exports.getBlocksByPageId = (pageId) => {
     return new Promise((resolve, reject) => {
-        const sql = 'SELECT * FROM blocks WHERE pageId=?';
+        const sql = 'SELECT * FROM blocks WHERE pageId=? ORDER BY blockOrder';
         db.all(sql, [pageId], (err, rows) => {
             if (err)
                 reject(err);
@@ -90,18 +90,16 @@ exports.updateBlock = (blockId,block) => {
 
 // This function deletes an existing block given its id.
 exports.deleteAllPageBlocks = (pageId) => {
-    console.log(pageId);
     return new Promise((resolve, reject) => {
         const sql = 'DELETE FROM blocks WHERE pageId=?';
         db.run(sql, [pageId], function (err) {
             if (err) {
                 reject(err);
-            }
-            console.log(this.changes);
-            if (this.changes === 0)
+            } else if (this.changes === 0) {
                 resolve({ error: 'No blocks deleted.' });
-            else
+            } else {
                 resolve(this.changes);
+            }
         });
     });
 };

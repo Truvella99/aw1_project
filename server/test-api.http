@@ -81,19 +81,16 @@ content-type: application/json
   "publicationDate": "2023-03-29",
   "blocks": [
     {
-      "pageId": 1,
       "type": "Header",
       "content": "Blog",
       "blockOrder": 1
     },
     {
-      "pageId": 1,
       "type": "Image",
       "content": "image1.jpg",
       "blockOrder": 2
     },
     {
-      "pageId": 1,
       "type": "Image",
       "content": "image1.jpg",
       "blockOrder": 3
@@ -104,7 +101,7 @@ content-type: application/json
 ###
 
 # Delete the page.
-DELETE http://localhost:3001/api/pages/1 HTTP/1.1
+DELETE http://localhost:3001/api/pages/2 HTTP/1.1
 ###
 
 ## Get the website name.

@@ -44,9 +44,10 @@ exports.insertPage = (page) => {
         db.run(sql, [page.userId, page.title, page.creationDate, page.publicationDate], function (err) {
             if (err) {
                 reject(err);
+            } else {
+                // Returning the newly created object with the DB additional properties to the client.
+                resolve(exports.getPage(this.lastID));
             }
-            // Returning the newly created object with the DB additional properties to the client.
-            resolve(exports.getPage(this.lastID));
         });
     });
 };
@@ -59,8 +60,7 @@ exports.updatePage = (isAdmin,userId,pageId,page) => {
         db.run(sql, [page.userId, page.title, page.creationDate, page.publicationDate,pageId,userId,isAdmin], function (err) {
             if (err) {
                 reject(err);
-            }
-            if (this.changes !== 1) {
+            } else if (this.changes !== 1) {
                 resolve({ error: 'No page was updated.' });
             } else {
                 // Returning the newly updated object with the DB additional properties to the client.
@@ -77,11 +77,11 @@ exports.deletePage = (isAdmin,userId, pageId) => {
         db.run(sql, [pageId, userId, isAdmin], function (err) {
             if (err) {
                 reject(err);
-            }
-            if (this.changes !== 1)
+            } else if (this.changes !== 1) {
                 resolve({ error: 'No page deleted.' });
-            else
+            } else {
                 resolve(null);
+            }
         });
     });
 };

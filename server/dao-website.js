@@ -26,8 +26,7 @@ exports.updateWebsiteName = (new_name,isAdmin) => {
     db.run(sql, [new_name,isAdmin], function (err) {
       if (err) {
         reject(err);
-      }
-      if (this.changes !== 1) {
+      } else if (this.changes !== 1) {
         resolve({ error: 'No name was updated.' });
       } else {
         resolve({ name: new_name });
