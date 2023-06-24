@@ -7,7 +7,7 @@ import validator from 'validator';
 
 function LoginForm(props) {
   // email and password of the user for login (controlled form)
-  const [email, setemail] = useState('enrico@gmail.com');
+  const [email, setEmail] = useState('u1@p.it');
   const [password, setPassword] = useState('pass');
   // props to set the user state after successfully logged in
   const setUser = useContext(SetUserContext);
@@ -43,26 +43,24 @@ function LoginForm(props) {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    // make reappear the ogin button on top of the navbar
+    // make reappear the login button on top of the navbar
     setInForm(false);
-    //setErrorMessage('');
     const credentials = { username: email, password: password };
     // FORM VALIDATION
     let valid = true;
     if (email === '' || password === '' || !validator.isEmail(email))
       valid = false;
-
     if (valid) {
       // Validation Passed, send the request to the server
       doLogIn(credentials);
     } else {
       // Validation Failed, show error message
       if (password === '' && email === '') {
-        HandleError('Empty Email and Password.')
+        HandleError({error: 'Empty Email and Password.'});
       } else if (!validator.isEmail(email)) {
-        HandleError('Wrong Email.')
+        HandleError({error: 'Wrong Email.'});
       } else {
-        HandleError('Empty Password.')
+        HandleError({error: 'Empty Password.'});
       }
     }
   };
@@ -77,7 +75,7 @@ function LoginForm(props) {
                   <Form onSubmit={handleSubmit}>
                       <Form.Group controlId='email'>
                           <Form.Label>Email</Form.Label>
-                          <Form.Control type='email' value={email} onChange={ev => setemail(ev.target.value)} />
+                          <Form.Control type='email' value={email} onChange={ev => setEmail(ev.target.value)} />
                       </Form.Group>
                       <Form.Group controlId='password'>
                           <Form.Label>Password</Form.Label>

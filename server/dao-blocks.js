@@ -35,7 +35,6 @@ exports.getNumberOfBlocks = (pageId) => {
     });
 };
 
-// NON USATA
 // This function return a specific block given its id.
 exports.getBlock = (blockId) => {
     return new Promise((resolve, reject) => {

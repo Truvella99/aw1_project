@@ -147,7 +147,6 @@ function App() {
                   <Route path='/pages/edit/:id' element={user.id ? <PageComponent location={'edit'}/> : <Navigate replace to='/'/> } />
                   <Route path='*' element={<DefaultRoute/>} />
                 </Routes>
-                <Footer/>
               </SetDirtyContext.Provider>
             </HandleErrorContext.Provider>
           </SetUserContext.Provider>
@@ -171,16 +170,6 @@ function DefaultRoute() {
         </Col>
       </div>
   );
-}
-
-function Footer() {
-  return(
-      <>  
-          <footer id='footer'>    
-              <p>© Copyright {dayjs().year()} - CMSMALL Gagliardo Domenico (s310454)</p>  
-          </footer>
-      </>
-  )
 }
 
 export default App;

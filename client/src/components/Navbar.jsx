@@ -33,7 +33,7 @@ function NavHeader(props) {
         // disable name editing
         setEditable(false);
         // click change website name without change nothing
-        if (new_name !== '') {
+        if (new_name.trim() !== '') {
             props.updateWebsiteName(new_name);
             setEditingName('');
         }

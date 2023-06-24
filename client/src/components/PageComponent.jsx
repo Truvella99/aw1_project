@@ -29,8 +29,6 @@ function PageComponent(props) {
   const [users, setUsers] = useState([]);
   // state to mantain all the images available
   const [images, setImages] = useState([]);
-  // state of the validation of the form
-  const [validated, setValidated] = useState(false);
   // states of the page (controlled form)
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
@@ -120,72 +118,69 @@ function PageComponent(props) {
     setInitialLoading(false);
   }, []);
 
-  async function handleSubmit(event)  {
-    const form = event.currentTarget;
+  async function handleSubmit(event) {
     event.preventDefault();
     event.stopPropagation();
-    if (form.checkValidity() === true) {
-      try {
-        // FORM VALIDATION:
-        // ONLY client check needed: check that there is at least one header blocks and another block
-        // publication date before creation is not possible since min attrbiute of input type date
-        // blocks with sameorder is not possible since i take the array index
-        // image with misleading content is not possible since it is not text editable
-        if (blockList.length < 2 || blockList.every((block) => block.type !== 'Header')) {
-          handleError({ error: 'A Page must have at least 1 block of type Header and another block' });
-        } else if(blockList.some((block) => block.content === '')) { 
-          handleError({ error: 'All blocks must not be empty.' });
+    try {
+      // FORM VALIDATION:
+      // ONLY client check needed: check that there is at least one header blocks and another block
+      // publication date before creation is not possible since min attrbiute of input type date
+      // blocks with sameorder is not possible since i take the array index
+      // image with misleading content is not possible since it is not text editable
+      if (title.length === 0) {
+        handleError({ error: 'Title must not have only spaces. Please Insert a Valid Title.' });
+      } else if (blockList.length < 2 || blockList.every((block) => block.type !== 'Header')) {
+        handleError({ error: 'A Page must have at least 1 block of type Header and another block' });
+      } else if (blockList.some((block) => block.content.trim() === '')) {
+        handleError({ error: 'All blocks must not be empty.' });
+      } else {
+        // construct new page object to create/update
+        if (pageId) {
+          // update page API
+          const send_page = { id: pageId, userId: page.userId || user.id, username: author, title: title, creationDate: creationDate, publicationDate: publicationDate ? publicationDate : undefined };
+          send_page.blocks = blockList.map((block, index) => {
+            return {
+              type: block.type,
+              content: block.content.trim(),
+              blockOrder: index + 1
+            };
+          });
+          await API.updatePage(send_page, pageId);
         } else {
-          // construct new page object to create/update
-          if (pageId) {
-            // update page API
-            const send_page = { id: pageId, userId: page.userId || user.id, username: author, title: title, creationDate: creationDate, publicationDate: publicationDate ? publicationDate : undefined };
-            send_page.blocks = blockList.map((block, index) => {
-              return {
-                type: block.type,
-                content: block.content,
-                blockOrder: index + 1
-              };
-            });
-            await API.updatePage(send_page, pageId);
-          } else {
-            // create new page API
-            const send_page = { id: undefined, userId: page.userId || user.id, username: author, title: title, creationDate: creationDate, publicationDate: publicationDate ? publicationDate : undefined };
-            send_page.blocks = blockList.map((block, index) => {
-              return {
-                type: block.type,
-                content: block.content,
-                blockOrder: index + 1
-              };
-            });
-            await API.createPage(send_page);
-          }
-          setDirty(true);
-          navigate('/backoffice');
+          // create new page API
+          const send_page = { id: undefined, userId: page.userId || user.id, username: author, title: title, creationDate: creationDate, publicationDate: publicationDate ? publicationDate : undefined };
+          send_page.blocks = blockList.map((block, index) => {
+            return {
+              type: block.type,
+              content: block.content.trim(),
+              blockOrder: index + 1
+            };
+          });
+          await API.createPage(send_page);
         }
-      } catch (err) {
-        handleError(err);
+        setDirty(true);
+        navigate('/backoffice');
       }
+    } catch (err) {
+      handleError(err);
     }
-    setValidated(true);
   };
 
   return (
     <Container fluid>
       {initialLoading && <LoadingSpinner/>}
-      <Form noValidate validated={validated} onSubmit={handleSubmit}>
+      <Form onSubmit={handleSubmit}>
         <Row className="mb-3">
-          <Form.Group as={Col} md="3" controlId="validationCustom01">
+          <Form.Group as={Col} md="3">
             <Form.Label>Page Title</Form.Label>
             <Form.Control
               required
               readOnly={!render_components}
               type="text"
               placeholder="Insert Page Title Here"
-              onChange={event => setTitle(event.target.value)}
+              onChange={event => setTitle(event.target.value.trim())}
               defaultValue={title}
             />
-            <Form.Control.Feedback type='invalid'>Please Insert a Title.</Form.Control.Feedback>
           </Form.Group>
           <Form.Group as={Col} md="3">
             <Form.Label>Page Author</Form.Label>
@@ -205,14 +200,13 @@ function PageComponent(props) {
                 </Dropdown>
                 : <Form.Control required readOnly={true} type="text" defaultValue={author} />}
           </Form.Group>
-          <Form.Group as={Col} md="3" controlId="validationCustom02">
+          <Form.Group as={Col} md="3">
             <Form.Label>Page Creation Date</Form.Label>
             <Form.Control type="date" readOnly defaultValue={creationDate} />
           </Form.Group>
-          <Form.Group as={Col} md="3" controlId="validationCustom02">
+          <Form.Group as={Col} md="3">
             <Form.Label>Page Publication Date</Form.Label>
             <Form.Control type="date" readOnly={!render_components} min={creationDate} onChange={event => setPublicationDate(event.target.value)} defaultValue={publicationDate} />
-            <Form.Control.Feedback type='invalid'>Please Insert a Valid Date.</Form.Control.Feedback>
           </Form.Group>
         </Row>
         <Row>
