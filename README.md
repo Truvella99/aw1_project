@@ -410,10 +410,11 @@
 
 ## Main React Components
 
-- `NavBar` (in `components/Navbar.jsx`): navbar component used to display the website name, along with eventual change name button and user information
+- `NavHeader` (in `components/Navbar.jsx`): navbar component used to display the website name, along with eventual change name button and user information
 - `ListOfPages` (in `components/PageList.jsx`): component used to display the list of all pages (published in frontoffice, all in backoffice)
 - `PageElement` (in `components/PageList.jsx`): component used to display the single page in the list of all pages (published in frontoffice, all in backoffice)
 - `AddButton` (in `components/PageList.jsx`): button to add a new page (in the backoffice)
+- `ChangeButton` (in `components/PageList.jsx`): button to switch from frontoffice to backoffice and viceversa when loggedIn
 - `LoginForm` (in `components/AuthComponents.jsx`): component used to display the login form, necessary to do the login
 - `PageComponent` (in `components/PageComponent.jsx`): component used to display the single page in detail
 - `PageContent` (in `components/PageContent.jsx`): component used to display all the blocks inside a page, when viewing the page in detail
