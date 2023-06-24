@@ -27,6 +27,7 @@ function PageComponent(props) {
   const isAdmin = user.isAdmin;
   // various users ({id,name}) of the application, loaded if there are admin permissions
   const [users, setUsers] = useState([]);
+  const getWebsiteName = props.getWebsiteName;
   // state to mantain all the images available
   const [images, setImages] = useState([]);
   // states of the page (controlled form)
@@ -113,6 +114,7 @@ function PageComponent(props) {
     if (isAdmin) {
       getUsers();
     }
+    getWebsiteName();
     retrieveAllImages();
     // disable the sppiner after retrieving all the data
     setInitialLoading(false);

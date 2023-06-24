@@ -32,16 +32,24 @@ function App() {
   // function to handle the application errors, all displayed into the Alert under the NavHeader
   function handleError(err) {
     let errMsg = 'Unkwnown error';
-    if (err.errors) {
-      if (err.errors[0].msg) {
-        errMsg = err.errors[0].msg;
-      }
-    } else if (err.error) {
+    if (err.error) {
       errMsg = err.error;
     }
   
     setErrorMessage(errMsg);
     setDirty(true);
+  }
+
+  async function getWebsiteName() {
+    try {
+      const websiteName = await API.getWebsiteName();
+      setWebsiteName(websiteName.name);
+      setDirty(false);
+      // here because we disable the spinner when we have retrieved all the data
+      setInitialLoading(false);
+    } catch (err) {
+      handleError(err);
+    }
   }
 
   // useeffect to retrieve all data related to the pages and the website name
@@ -61,18 +69,7 @@ function App() {
       } catch (err) {
         handleError(err);
       }
-    };
-    async function getWebsiteName() {
-      try {
-        const websiteName = await API.getWebsiteName();
-        setWebsiteName(websiteName.name);
-        setDirty(false);
-        // here because we disable the spinner when we have retrieved all the data
-        setInitialLoading(false);
-      } catch (err) {
-        handleError(err);
-      }
-    } 
+    }; 
     if (dirty) {
       getAllPages();
       getWebsiteName();
@@ -142,9 +139,9 @@ function App() {
                   <Route path='/' element={<ListOfPages front_office={true} pageList={pageList} deletePage={deletePage} />} />
                   <Route path='/backoffice' element={user.id ? <ListOfPages front_office={false} pageList={pageList} deletePage={deletePage} /> : <Navigate replace to='/' />} />
                   <Route path='/login' element={user.id ? <Navigate replace to='/backoffice'/> : <LoginForm setInForm={setInForm} />} />
-                  <Route path='/pages/add' element={user.id ? <PageComponent location={'add'}/> : <Navigate replace to='/'/> }/>
-                  <Route path='/pages/view/:id' element={<PageComponent location={'view'}/>} />
-                  <Route path='/pages/edit/:id' element={user.id ? <PageComponent location={'edit'}/> : <Navigate replace to='/'/> } />
+                  <Route path='/pages/add' element={user.id ? <PageComponent getWebsiteName={getWebsiteName} location={'add'}/> : <Navigate replace to='/'/> }/>
+                  <Route path='/pages/view/:id' element={<PageComponent getWebsiteName={getWebsiteName} location={'view'}/>} />
+                  <Route path='/pages/edit/:id' element={user.id ? <PageComponent getWebsiteName={getWebsiteName} location={'edit'}/> : <Navigate replace to='/'/> } />
                   <Route path='*' element={<DefaultRoute/>} />
                 </Routes>
               </SetDirtyContext.Provider>

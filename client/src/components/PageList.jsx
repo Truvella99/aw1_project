@@ -73,16 +73,16 @@ function PageElement(props) {
   }
 
   // condition on which display delete and edit buttons
-  const condition = (user.id === page.userId || user.isAdmin) && !front_office;
+  const condition = (user.id === page.userId || isAdmin) && !front_office;
 
   return (
     <tr key={page.id}>
       <td>
         {condition ? <Link className='icons'><i className="bi bi-trash-fill" onClick={() => deletePage()} /></Link> : ''}
-        {'\t'}
-        {condition ? <Link className='icons' to={`/pages/edit/${page.id}`}><i className="bi bi-pencil-fill" onClick={() => { setDirty(true) }} /></Link> : ''}
-        {'\t'}
-        <Link className='icons' to={`/pages/view/${page.id}`}><i className="bi bi-eye-fill" onClick={() => { setDirty(true) }} /></Link>
+        {'\t'  /* no setDirty here, useless to retrieve all page list for get fresh website name, recall it directly in pageComponent*/}
+        {condition ? <Link className='icons' to={`/pages/edit/${page.id}`}><i className="bi bi-pencil-fill" /></Link> : ''}
+        {'\t'  /* no setDirty here, useless to retrieve all page list for get fresh website name, recall it directly in pageComponent*/}
+        <Link className='icons' to={`/pages/view/${page.id}`}><i className="bi bi-eye-fill" /></Link>
       </td>
       <td>{page.username}</td>
       <td>{page.title}</td>
@@ -115,11 +115,10 @@ function ChangeButton(props) {
 }
 
 function AddButton(props) {
-  // setDirty state shared with useContext hook
-  const setDirty = useContext(SetDirtyContext);
+  // no setDirty here, useless to retrieve all page list for get fresh website name, recall it directly in pageComponent
 
   return (
-    <Link to="/pages/add"><Button className='AddButton' onClick={() => setDirty(true)}>+</Button></Link>
+    <Link to="/pages/add"><Button className='AddButton'>+</Button></Link>
   );
 }
 

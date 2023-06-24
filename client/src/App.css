@@ -43,23 +43,3 @@ a {
 .buttons Button {
   margin-right: 5%;
 }
-
-#footer {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  color: white;
-  background-color: #171F26;
-  margin-top: 20px;
-  padding: 20px;
-  text-align: center;
-  z-index: 1;
-}
-
-#footer p {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0px;
-  padding: 0px;
-}
