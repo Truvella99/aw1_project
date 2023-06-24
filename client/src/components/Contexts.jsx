@@ -16,6 +16,7 @@ const SetDirtyContext = createContext(null);
 /*** PAGE COMPONENT CONTEXT ***/
 
 // flag to decide if render components or not shared context
+// decided in page component, based un the url (add/edit/view)
 const render_componentsContext = createContext(null);
 
 
@@ -23,17 +24,19 @@ const render_componentsContext = createContext(null);
 
 // onDragStart shared context
 const onDragStartContext = createContext(null);
-// onDragEnd shared context
+// onDragEnter shared context
 const onDragEnterContext = createContext(null);
 // handleSort shared context
 const handleSortContext = createContext(null);
-// handleSort shared context
+// removeBlock shared context
 const removeBlockContext = createContext(null);
-// handleSort shared context
+// saveBlock shared context
 const saveBlockContext = createContext(null);
-// images shared context (from page component to BlockForm for having all the images)
+// images shared context (uset to pass the available images of the server from page component directly to BlockForm)
+// in this way we avoid to pass further props
 const imagesBlockContext = createContext(null);
-// block disabled flag context (from page component to Header and Paragraph Block to disable/enable editing)
+// block disabled flag context (from page content to Blocks (Header, Paragraph) to disable/enable editing)
+// to avoid dragging image url inside the Header/Paragraph 
 const blockDisabledContext = createContext(null);
 
 export {

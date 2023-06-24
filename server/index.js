@@ -20,7 +20,12 @@ app.use(express.json());
 
 // static middleware to serve static contents through express
 app.use(express.static('./public'));
+// staticFolderPath where the images are statically stored
 const staticFolderPath = path.join(__dirname, 'public/images');
+
+// method used to retrieve all the images filename from the server.
+// since fs.readdir is a asynchronous operation, it returns a promise
+// reject if read fails, resolve with the array of images filename 
 const getImagesName = () => {
   return new Promise((resolve, reject) => {
     fs.readdir(staticFolderPath, (err, files) => {
@@ -50,32 +55,32 @@ const passport = require('passport');                              // authentica
 const LocalStrategy = require('passport-local');                   // authentication strategy (username and password)
 
 /** Set up authentication strategy to search in the DB a user with a matching password.
- * The user object will contain other information extracted by the method usersDao.getUser (i.e., id, username, name).
+ * The user object will contain other information extracted by the method usersDao.getUser
+ * BY DEFAULT, THE LOCAL STRATEGY LOOKS FOR "USERNAME": 
+ * FOR SIMPLICITY, INSTEAD OF USING "EMAIL", WE CREATE AN OBJECT WITH THAT PROPERTY IN HTTP REQUEST.
  **/
 passport.use(new LocalStrategy(async function verify(email, password, callback) {
   const user = await usersDao.getUser(email, password)
   if (!user)
     return callback(null, false, 'Incorrect email or password');
 
-  return callback(null, user); // NOTE: user info in the session (all fields returned by usersDao.getUser, i.e, id, username, name)
+  return callback(null, user); // NOTE: user info in the session will be all the fields returned by usersDao.getUser
 }));
 
-// Serializing in the session the user object given from LocalStrategy(verify).
-passport.serializeUser(function (user, callback) { // this user is id + username + name 
+// Serializing in the session the user object given from the above LocalStrategy
+passport.serializeUser(function (user, callback) { // this user is:  id + email + isAdmin + username 
   callback(null, user);
 });
 
 // Starting from the data in the session, we extract the current (logged-in) user.
-passport.deserializeUser(function (user, callback) { // this user is id + email + name 
-  // if needed, we can do extra check here (e.g., double check that the user is still in the database, etc.)
-  // e.g.: return usersDao.getUserById(id).then(user => callback(null, user)).catch(err => callback(err, null));
-
+passport.deserializeUser(function (user, callback) { // this user is:  id + email + isAdmin + username 
   return callback(null, user); // this will be available in req.user
 });
 
 /** Creating the session */
 const session = require('express-session');
 
+// set up the secret used to sign the session cookie
 app.use(session({
   secret: "ckmdnvvnkecwmoefmw",
   resave: false,
@@ -104,6 +109,8 @@ const errorFormatter = (errors) => {
 
 // POST /api/sessions 
 // This route is used for performing login.
+// BY DEFAULT, THE LOCAL STRATEGY LOOKS FOR "USERNAME": 
+// FOR SIMPLICITY, INSTEAD OF USING "EMAIL", WE CREATE AN OBJECT WITH THAT PROPERTY IN HTTP REQUEST.
 app.post('/api/sessions', function (req, res, next) {
   passport.authenticate('local', (err, user, info) => {
     if (err)
@@ -117,8 +124,7 @@ app.post('/api/sessions', function (req, res, next) {
       if (err)
         return next(err);
 
-      // req.user contains the authenticated user, we send all the user info back
-      // this is coming from usersDao.getUser() in LocalStratecy Verify Fn
+      // req.user contains the authenticated user informations (id + email + isAdmin + username), we send all the user info back
       return res.json(req.user);
     });
   })(req, res, next);
@@ -136,6 +142,7 @@ app.get('/api/sessions/current', (req, res) => {
 
 // DELETE /api/session/current
 // This route is used for loggin out the current user.
+// possible to call only if the user is loggedIn, otherwise logout makes no sense.
 app.delete('/api/sessions/current', isLoggedIn, (req, res) => {
   req.logout(() => {
     res.status(200).json(null);
@@ -143,14 +150,14 @@ app.delete('/api/sessions/current', isLoggedIn, (req, res) => {
 });
 
 // GET /api/users
-// This route is used to retrieve all the users of the application if needed, admin only
+// This route is used to retrieve all the users of the application, if error return 503 (database error)
 app.get('/api/users', isLoggedIn 
   ,(req, res) => {
   // if not admin, return permission denied error
   if(!req.user.isAdmin) {
     return res.status(403).json({ error: "Cannot Get all The Users." });
   }
-  // Get all the users
+  // Otherwise, get all the users
   usersDao.getUsers()
     .then(authors => res.json(authors))
     .catch(() => res.status(503).json({error: 'Database Error in Retrieving all Users'}));
@@ -161,7 +168,7 @@ app.get('/api/users', isLoggedIn
 
 
 // GET /api/pages/backoffice
-// get all the information of the pages for the backoffice
+// get all the information of the pages (backoffice), if error return 503 (database error)
 app.get('/api/pages/backoffice',
   isLoggedIn,
   (req, res) => {
@@ -174,7 +181,7 @@ app.get('/api/pages/backoffice',
 );
 
 // GET /api/pages/frontoffice
-// get all the information of the pages for the frontoffice
+// get all the information of the pages (frontoffice), if error return 503 (database error)
 app.get('/api/pages/frontoffice',
   (req, res) => {
     // Get all the pages for the frontoffice visualization.
@@ -199,7 +206,7 @@ app.get('/api/pages/frontoffice',
 
 // GET /api/pages/<id>
 // Get a specific page, identified by the id <id>, along with the associated blocks.
-// Authenticated (it's possible to retrieve all pages)
+// Authenticated (it's possible to retrieve all pages, so also backoffice pages)
 app.get('/api/pages/backoffice/:id',
   isLoggedIn,
   [
@@ -210,13 +217,14 @@ app.get('/api/pages/backoffice/:id',
       return res.status(422).json({ error: errors.join(", ") }); // error message is a single string with all error joined together
     }
     try {
-      // check if the page exists
+      // check if the page exists, if not found return 404 not found error, if error return 503 (database error)
       const pageId = req.params.id;
       const page = await pagesDao.getPage(pageId).catch(() => { throw {unavailable: `Database Error in retrieving Page ${pageId}`}});
       if (page.error)
         return res.status(404).json(page);
 
-      // retrieve the blocks of the page
+      // retrieve the blocks of the page, if error return 503 (database error)
+      // if non-existing return 404 not found error
       const blocks = await blocksDao.getBlocksByPageId(pageId).catch(() => { throw {unavailable: `Database Error in retrieving Blocks of Page ${pageId}`}});
       if (blocks.error)
         return res.status(404).json(blocks);
@@ -245,7 +253,8 @@ app.get('/api/pages/frontoffice/:id', [
     return res.status(422).json({ error: errors.join(", ") }); // error message is a single string with all error joined together
   }
   try {
-    // check if the page exists
+    // check if the page exists, if error return 503 (database error)
+    // if not found return 404 not found error
     const pageId = req.params.id;
     const page = await pagesDao.getPage(pageId).catch(() => { throw {unavailable: `Database Error in retrieving Page ${pageId}`}});
     if (page.error)
@@ -256,7 +265,8 @@ app.get('/api/pages/frontoffice/:id', [
     if (!(publicationDate.isBefore(today, 'day') || publicationDate.isSame(today, 'day'))) {
       return res.status(403).json({ error: "Don't Have permissions to retrieve this Page." });
     }
-    // retrieve the blocks of the page
+    // retrieve the blocks of the page, if error return 503 (database error)
+    // if not found return 404 not found error
     const blocks = await blocksDao.getBlocksByPageId(pageId).catch(() => { throw {unavailable: `Database Error in retrieving Blocks of Page ${pageId}`}});
     if (blocks.error)
       return res.status(404).json(blocks);
@@ -280,7 +290,7 @@ app.post('/api/pages', isLoggedIn,
   [
     check('userId').isInt(),
     check('title').notEmpty(),
-    // only date (first ten chars) and valid ISO
+    // only date (first ten chars) and valid ISO format
     check('creationDate').isLength({ min: 10, max: 10 }).isISO8601({ strict: true }),
     check('publicationDate').isLength({ min: 10, max: 10 }).isISO8601({ strict: true }).optional(),
     check('blocks.*.type').isIn(['Header', 'Paragraph', 'Image']),
@@ -293,17 +303,18 @@ app.post('/api/pages', isLoggedIn,
       return res.status(422).json({ error: errors.join(", ") }); // error message is a single string with all error joined together
     }
     try {
-      // check if user id exists
+      // check if user id exists, if error return 503 (database error)
+      // if not found return 404 not found error
       const userId = req.body.userId;
       const user = await usersDao.getUserById(userId).catch(() => { throw {unavailable:`Database Error in retrieving User ${userId}`}});
       if (user.error)
         return res.status(404).json(user);
-      // check if this id is the same of authenticated user (not an Admin), otherwise it's ok
+      // if not an admin and the userid not correspond to the current logged in user, return permission denied
       if (!req.user.isAdmin && userId !== req.user.id) {
         return res.status(403).json({ error: "Cannot Create a Page for Other Users" });
       }
 
-      // check if publication date is before creation date 
+      // check if publication date is before creation date, otherwise return semantic error
       if (req.body.publicationDate && dayjs(req.body.publicationDate).isBefore(dayjs(req.body.creationDate), 'day')) {
         return res.status(422).json({ error: "Cannot Create a Page with misleading dates" });
       }
@@ -322,12 +333,12 @@ app.post('/api/pages', isLoggedIn,
         blockOrder: block.blockOrder
       })).sort((a, b) => a.blockOrder - b.blockOrder);
 
-      // check that there is at least one header blocks and another block
+      // check that there is at least one header blocks and another block, otherwise return semantic error
       if (blocks.length < 2 || blocks.every((block) => block.type !== 'Header')) {
         return res.status(422).json({ error: "Blocks Costraint Not Respected" });
       }
 
-      // additional check to make sure there are no blocks with same blockOrder
+      // additional check to make sure there are no blocks with same blockOrder, otherwise return semantic error
       const same_order = blocks.some((element, index) => {
         return blocks.findIndex((el, idx) => el.blockOrder === element.blockOrder && idx !== index) !== -1;
       });
@@ -336,7 +347,7 @@ app.post('/api/pages', isLoggedIn,
         return res.status(422).json({ error: '2 Blocks have the same order.' });
       }
 
-      // check that there are no missing order in the block => (ex. blockorder,1,2,3,5)
+      // check that there are no missing order in the block => (ex. blockorder,1,2,3,5), otherwise return semantic error
       let wrongOrders = [];
       blocks.forEach((block,index) => {
         if (block.blockOrder != index + 1) {
@@ -348,7 +359,9 @@ app.post('/api/pages', isLoggedIn,
         return res.status(422).json({ error: `Wrong Block order: ${wrongOrders.join(' , ')}.`});
       }
 
-      // check that the blocks of type Image have a content that is into the image table
+      // check that the blocks of type Image have a content that is into the image table, otherwise return semantic error 422
+      // if images not found, return 404 not found error
+      // if method error return 503 (unavailable error)
       const images = await getImagesName().catch(() => { throw {unavailable: 'Server: Unable to Retrieve all Images'}});
       if (images.error)
         return res.status(404).json(images);
@@ -365,10 +378,10 @@ app.post('/api/pages', isLoggedIn,
         return res.status(422).json({ error: `Image Block have mismatched content: ${wrongImageContent.join(' , ')}.` });
       }
 
-      // create the page
+      // create the page, if error return 503 (database error)
       const new_page = await pagesDao.insertPage(page).catch(() => { throw {unavailable: 'Database Error in creating Page'}});
 
-      // create the blocks
+      // create the blocks, if error return 503 (database error)
       const new_blocks = await Promise.all(blocks.map(async (block) => {
         block.pageId = new_page.id;
         return await blocksDao.insertBlock(block).catch(() => { throw {unavailable: `Database Error in creating Blocks`}});
@@ -416,17 +429,18 @@ app.post('/api/pages/:id',
     }
 
     try {
-      // check if user id exists
+      // check if user id exists, otherwise return 404 not found error
+      // if error return 503 (database error)
       const userId = req.body.userId;
       const user = await usersDao.getUserById(userId).catch(() => { throw {unavailable: `Database Error in retrieving User ${userId}`}});
       if (user.error)
         return res.status(404).json(user);
-      // check if this id is the same of authenticated user (not an Admin), otherwise it's ok
+      // if not an admin and the userid not correspond to the current logged in user, return permission denied
       if (!req.user.isAdmin && userId !== req.user.id) {
         return res.status(403).json({ error: "Cannot Update a Page for Other Users" });
       }
 
-      // check if publication date is before creation date 
+      // check if publication date is before creation date, otherwise return semantic error
       if (req.body.publicationDate && dayjs(req.body.publicationDate).isBefore(dayjs(req.body.creationDate), 'day')) {
         return res.status(422).json({ error: "Cannot Update a Page with misleading dates" });
       }
@@ -446,12 +460,12 @@ app.post('/api/pages/:id',
         blockOrder: block.blockOrder
       })).sort((a, b) => a.blockOrder - b.blockOrder);
 
-      // check that there is at least one header blocks and another block
+      // check that there is at least one header blocks and another block, otherwise return semantic error
       if (blocks.length < 2 || blocks.every((block) => block.type !== 'Header')) {
         return res.status(422).json({ error: "Blocks Costraint Not Respected" });
       }
 
-      // additional check to make sure there are no blocks with same blockOrder
+      // additional check to make sure there are no blocks with same blockOrder, otherwise return semantic error
       const same_order = blocks.some((element, index) => {
         return blocks.findIndex((el, idx) => el.blockOrder === element.blockOrder && idx !== index) !== -1;
       });
@@ -460,7 +474,7 @@ app.post('/api/pages/:id',
         return res.status(422).json({ error: '2 Blocks have the same order.' });
       }
 
-      // check that there are no missing order in the block => (ex. blockorder,1,2,3,5)
+      // check that there are no missing order in the block => (ex. blockorder,1,2,3,5), otherwise return semantic error
       let wrongOrders = [];
       blocks.forEach((block,index) => {
         if (block.blockOrder != index + 1) {
@@ -472,7 +486,9 @@ app.post('/api/pages/:id',
         return res.status(422).json({ error: `Wrong Block order: ${wrongOrders.join(' , ')}.`});
       }
 
-      // check that the blocks of type Image have a content that is into the image table
+      // check that the blocks of type Image have a content that is into the image table, otherwise return semantic error 422
+      // if images not found, return 404 not found error
+      // if method error return 503 (unavailable error)
       const images = await getImagesName().catch(() => { throw {unavailable: 'Server: Unable to retrieve all Images'}});
       if (images.error)
         return res.status(404).json(images);
@@ -489,17 +505,19 @@ app.post('/api/pages/:id',
         return res.status(422).json({ error: `Image Block have mismatched content: ${wrongImageContent.join(' , ')}.` });
       }
 
-      // update the page
+      // update the page, if error return 503 (database error)
+      // if not found, return 404 not found error
       const up_page = await pagesDao.updatePage(req.user.isAdmin, req.user.id, page.id, page).catch(() => { throw {unavailable: `Database Error in Updating Page ${page.id}`}});
       if (up_page.error)
         return res.status(404).json(up_page);
 
-      // delete all blocks of the page
+      // delete all blocks of the page, if error return 503 (database error)
+      // if not found, return 404 not found error
       const num_deleted = await blocksDao.deleteAllPageBlocks(up_page.id).catch(() => { throw {unavailable: `Database Error in Deleting all Blocks of Page ${up_page.id}`}});
       if (num_deleted.error)
         return res.status(404).json(num_deleted);
 
-      // insert the blocks from scratch
+      // insert the blocks from scratch, if error return 503 (database error)
       const new_blocks = await Promise.all(blocks.map(async (block) => {
         return await blocksDao.insertBlock(block).catch(() => { throw {unavailable: 'Database Error in Inserting new Blocks From Scratch'}});
       }));
@@ -531,12 +549,10 @@ app.delete('/api/pages/:id',
       return res.status(422).json({ error: errors.join(", ") }); // error message is a single string with all error joined together
     }
     try {
-      // check that the page you want to delete exist
-      // if the page exist and has not been cancelled, then it is a permission denied error
+      // check that the page you want to delete exist, if error return 503 (database error)
       const page_exist = await pagesDao.getPage(req.params.id).catch(() => { throw {unavailable: `Database Error in retrieving Page ${req.params.id}`}});
-      // if page does not exist return 404 not found error
       if (!page_exist.error) {
-        // page exist, delete it (ON DELETE CASCADE, SO DELETE ALSO THE BLOCKS)
+        // page exist, delete it (ON DELETE CASCADE, SO DELETE ALSO THE BLOCKS), if error return 503 (database error)
         const result = await pagesDao.deletePage(req.user.isAdmin, req.user.id, req.params.id).catch(() => { throw {unavailable: `Database Error in Deleting Page ${req.params.id} and relative Blocks`}});
         if (result === null)
           return res.status(200).json(null);
@@ -544,6 +560,7 @@ app.delete('/api/pages/:id',
           // page exist and has not been deleted, permission error
           return res.status(403).json({ error: "Cannot Delete a Page for Other Users" });
       } else {
+          // if page does not exist return 404 not found error
           return res.status(404).json(page_exist);
       }
     } catch (err) {
@@ -558,7 +575,7 @@ app.delete('/api/pages/:id',
 /*** Website APIs ***/
 
 // GET /api/websites
-// Get the website name.
+// Get the website name, if error return 503 (database error)
 app.get('/api/websites',
   async (req, res) => {
     try {
@@ -587,6 +604,7 @@ app.put('/api/websites/:name',
       if (!req.user.isAdmin) {
         return res.status(403).json({ error: "Cannot Update Website Name." });
       }
+      // update website name, if not found return 404 not found error, if error return 503 (database error)
       const result = await websiteDao.updateWebsiteName(req.params.name, req.user.isAdmin).catch(() => { throw {unavailable: 'Database error during the update of website name'}});
       if (result.error)
         res.status(404).json(result);
@@ -604,7 +622,7 @@ app.put('/api/websites/:name',
 /*** Images APIs ***/
 
 // GET /api/images
-// Get all the images relative path
+// Get all the images relative path, if error return 503 (unavailable error)
 app.get('/api/images',
   async (req, res) => {
     try {

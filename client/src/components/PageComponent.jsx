@@ -7,41 +7,45 @@ import { LoadingSpinner } from './Loading';
 import API from '../API';
 import dayjs from 'dayjs';
 
-
+// component used to view a page in detail, edit a page and add a new page 
 function PageComponent(props) {
   // id of the page to be fetched
   const pageId = useParams().id;
-  // page informations
+  // state used to store the page informations
   const [page, setPage] = useState({ id: undefined, userId: undefined, username: undefined, title: undefined, creationDate: undefined, publicationDate: undefined });
-  // blocks informations of that page to be fetched
+  // state used to store all the blocks of the page to be fetched
   const [blockList, setBlockList] = useState([]);
-  // navigate to go to the url
+  // navigate to go to a certain url
   const navigate = useNavigate();
-  // error handling context
+  // handleError context retrieved with useContext hook
   const handleError = useContext(HandleErrorContext);
-  // user context
+  // user context retrieved with useContext hook
   const user = useContext(UserContext);
-  // setdirty context
+  // setDirty context retrieved with useContext hook
   const setDirty = useContext(SetDirtyContext);
   // isAdmin attribute of the user
   const isAdmin = user.isAdmin;
   // various users ({id,name}) of the application, loaded if there are admin permissions
+  // used to allow the admin to select a different author (among the existing users) for the page
   const [users, setUsers] = useState([]);
+  // function to get from the server the current website name, passed as a prop
   const getWebsiteName = props.getWebsiteName;
-  // state to mantain all the images available
+  // state user to store all the images available in the application
   const [images, setImages] = useState([]);
-  // states of the page (controlled form)
+  // states of the form, used to edit page informations (controlled form) 
   const [title, setTitle] = useState('');
+  // author state: used for updating the interface accordingly and to set the page object when
+  // adding/editing a page
   const [author, setAuthor] = useState('');
   const [creationDate, setCreationDate] = useState('');
   const [publicationDate, setPublicationDate] = useState('');
-  // loading state: handle the first resource loading, showing a loading spinner
+  // initialLoading state: handle the first resource loading by showing a loading spinner
   const [initialLoading,setInitialLoading] = useState(true);
  
-  /*const current_filter = useLocation().state;*/
-  // props to tell where in which url i am mounting this component
+  // props used to tell from which url i am mounting this component
   const location = props.location;
   // condition to render components and make them editable
+  // then passed as a context to conditional render also the single blocks, by making them editable or not
   let render_components;
 
   if (location === 'add') {
@@ -58,13 +62,14 @@ function PageComponent(props) {
     // edit path
     // if user is logged in, owns the page that he wants to edit or he's an Admin, render add/edit logic and make form components editable 
     // render_components = true
-    // otherwise render add logic and make form components not editable
+    // otherwise make form components not editable
     // render_components = false
     render_components = (user.id === page.userId) || user.isAdmin;
   }
 
   // useeffect, executed only when the component is mounted, used to retrieve the informations of the specific page
   useEffect(() => {
+    // function used to retrieve page information in detail
     async function getPage(pageId) {
       try {
         let page;
@@ -75,6 +80,7 @@ function PageComponent(props) {
           // only visulization, retrieve frontoffice pages only
           page = await API.getPagesbyIdFrontOffice(pageId);
         }
+        // once obtained the page from the server, set react sttes accordingly
         setPage({ id: page.id, userId: page.userId, username: page.username, title: page.title, creationDate: page.creationDate, publicationDate: page.publicationDate });
         setTitle(page.title);
         setAuthor(page.username);
@@ -82,9 +88,12 @@ function PageComponent(props) {
         setPublicationDate(page.publicationDate);
         setBlockList(page.blocks);
       } catch (err) {
+        // show error message
         handleError(err);
       }
     };
+    // function used to retrieve all the users of the application, if Admin
+    // used to allow the admin to select a different author (among the existing users) for the page
     async function getUsers() {
       try {
         const users = await API.getUsers();
@@ -93,7 +102,7 @@ function PageComponent(props) {
         handleError(err);
       }
     }
-    // call the API to display the images for choice
+    // function used to retrieve all the images, then used for let user choice among them
     async function retrieveAllImages() {
       try {
         const images = await API.getAllImages();
@@ -104,19 +113,22 @@ function PageComponent(props) {
     }
 
     if (pageId) {
-      // edit/view page case
+      // edit/view page case, since there is an id in the url
       getPage(pageId);
     } else {
-      // add page case
+      // no id in the url, add page case
+      // set creation date to today and author to the current logged in user
       setCreationDate(dayjs().format("YYYY-MM-DD"));
       setAuthor(user.username);
     }
+    // getting the users only if admin
     if (isAdmin) {
       getUsers();
     }
+    // get the website name and all the available images a priori 
     getWebsiteName();
     retrieveAllImages();
-    // disable the sppiner after retrieving all the data
+    // disable the spinner after retrieving all the data
     setInitialLoading(false);
   }, []);
 
@@ -125,9 +137,13 @@ function PageComponent(props) {
     event.stopPropagation();
     try {
       // FORM VALIDATION:
-      // ONLY client check needed: check that there is at least one header blocks and another block
-      // publication date before creation is not possible since min attrbiute of input type date
-      // blocks with sameorder is not possible since i take the array index
+      // ONLY client checks needed:
+      // - check that there is at least one header blocks and another block
+      // - check that all blocks content is not empty  
+      // - check that the title is not space-only
+      // empty title is not possible since there is required attribute
+      // publication date before creation is not possible since min attribute of input type date
+      // blocks with sameorder is not possible since the array index is taken
       // image with misleading content is not possible since it is not text editable
       if (title.length === 0) {
         handleError({ error: 'Title must not have only spaces. Please Insert a Valid Title.' });
@@ -138,7 +154,10 @@ function PageComponent(props) {
       } else {
         // construct new page object to create/update
         if (pageId) {
-          // update page API
+          // edit/view page case, since there is an id in the url
+          // create the object properly and call the update page API
+          // here username: author since , if user with Admin privileges
+          // the actual author (that was maybe changed) is stored in the author state  
           const send_page = { id: pageId, userId: page.userId || user.id, username: author, title: title, creationDate: creationDate, publicationDate: publicationDate ? publicationDate : undefined };
           send_page.blocks = blockList.map((block, index) => {
             return {
@@ -149,7 +168,10 @@ function PageComponent(props) {
           });
           await API.updatePage(send_page, pageId);
         } else {
-          // create new page API
+          // no id in the url, add page case
+          // create the object properly and call the create page API
+          // here username: author since , if user with Admin privileges
+          // the actual author (that was maybe changed) is stored in the author state  
           const send_page = { id: undefined, userId: page.userId || user.id, username: author, title: title, creationDate: creationDate, publicationDate: publicationDate ? publicationDate : undefined };
           send_page.blocks = blockList.map((block, index) => {
             return {
@@ -160,10 +182,12 @@ function PageComponent(props) {
           });
           await API.createPage(send_page);
         }
+        // rehydrate the data and go to backoffice
         setDirty(true);
         navigate('/backoffice');
       }
     } catch (err) {
+      // display error message
       handleError(err);
     }
   };
@@ -186,7 +210,8 @@ function PageComponent(props) {
           </Form.Group>
           <Form.Group as={Col} md="3">
             <Form.Label>Page Author</Form.Label>
-            { // not only render_components otherwise a normal user in add would see the menu
+            { // display the choose user menu if I am an authenticated user (render_components)
+              //but also with admin privileges (isAdmin). Otherwise a normal user in add would see the menu
               isAdmin && render_components ?
                 <Dropdown>
                   <Dropdown.Toggle variant="secondary" id="dropdown-basic">
@@ -194,8 +219,9 @@ function PageComponent(props) {
                   </Dropdown.Toggle>
                   <Dropdown.Menu>
                     {users.map((author, index) => {
-                      // onClick we change the author of the current page
-                      // author state for interfaces and 
+                      // onClick: change the author of the current page
+                      // author state: used for updating the interface accordingly and to set the page object when
+                      // adding/editing a page
                       return <Dropdown.Item key={index} onClick={() => { setPage(Object.assign({}, page, { userId: author.id }, { username: author.username })); setAuthor(author.username); }}>{author.username}</Dropdown.Item>;
                     })}
                   </Dropdown.Menu>
@@ -212,13 +238,15 @@ function PageComponent(props) {
           </Form.Group>
         </Row>
         <Row>
+          {/* Pass the render_components flag ang images array to pageContent component */}
           <render_componentsContext.Provider value={render_components}>
             <imagesBlockContext.Provider value={images}>
               <PageContent blockList={blockList} setBlockList={setBlockList} />
             </imagesBlockContext.Provider>
           </render_componentsContext.Provider>
         </Row>
-        {render_components ?
+        { // render Submit/Close form button in add/edit, otherwise only close button in view is rendered.
+        render_components ?
           <Container className='buttons'>
             <Button type="submit">Submit form</Button>{' '}
             <Link to={'/backoffice'}><Button variant="warning" onClick={() => {setDirty(true)}}>Close Form</Button></Link>

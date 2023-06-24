@@ -99,7 +99,8 @@ async function getUsers() {
 /*** PAGES API ***/
 
 /**
- * Getting from the server side and returning the list of all pages (backoffice).
+ * Getting from the server side 
+ * and returning a JSON object with the list of all pages (backoffice).
 */
 
 async function getPagesBackOffice() {
@@ -117,7 +118,8 @@ async function getPagesBackOffice() {
 }
 
 /**
- * Getting from the server side and returning the list of published pages (front office).
+ * Getting from the server side 
+ * and returning a JSON object with the list of only-published pages (front office).
 */
 
 async function getPagesFrontOffice() {
@@ -134,7 +136,8 @@ async function getPagesFrontOffice() {
 }
 
 /**
- * Getting from the server side and returning a specific page, along with the blocks (backoffice).
+ * Getting from the server side and returning 
+ * a JSON object that represents a specific page, along with the blocks (backoffice).
 */
 
 async function getPagesbyIdBackOffice(pageId) {
@@ -152,7 +155,8 @@ async function getPagesbyIdBackOffice(pageId) {
 }
 
 /**
- * Getting from the server side and returning a specific only-published page, along with the blocks (frontoffice).
+ * Getting from the server side and returning 
+ * a JSON object that represents a specific only-published page, along with the blocks (frontoffice).
 */
 
 async function getPagesbyIdFrontOffice(pageId) {
@@ -171,6 +175,8 @@ async function getPagesbyIdFrontOffice(pageId) {
 
 /**
  * Sending to the server side and saving a specific page, along with the blocks.
+ * It returns a JSON object representing the inserted page,
+ *  notably with the newly assigned id by the database.
 */
 async function createPage(page) {
   const response = await fetch(SERVER_URL + '/pages', {
@@ -194,6 +200,8 @@ async function createPage(page) {
 
 /**
  * Sending to the server side and updating a specific page, along with the blocks.
+ * It returns a JSON object representing the updated page,
+ * notably with the newly assigned id by the database.
 */
 async function updatePage(page, pageId) {
   const response = await fetch(SERVER_URL + `/pages/${pageId}`, {
@@ -239,6 +247,7 @@ async function deletePage(pageId) {
 
 /**
  * Getting from the server the website name.
+ * It returns a JSON object with the website name information.
 */
 async function getWebsiteName() {
   const response = await fetch(SERVER_URL + '/websites').catch(() => { throw { error: "Connection Error" } });
@@ -256,6 +265,7 @@ async function getWebsiteName() {
 
 /**
  * Sending to the server side and updating the website name.
+ * It returns a JSON object with the updaated website name information.
 */
 async function updateWebsiteName(new_name) {
   const response = await fetch(SERVER_URL + `/websites/${new_name}`, {
@@ -277,7 +287,8 @@ async function updateWebsiteName(new_name) {
 /*** Images APIs ***/
 
 /**
- * Getting from the server all the images relative path
+ * Getting from the server all the images relative path.
+ * It returns a JSON object with all the images informations.
 */
 async function getAllImages() {
   const response = await fetch(SERVER_URL + '/images').catch(() => { throw { error: "Connection Error" } });

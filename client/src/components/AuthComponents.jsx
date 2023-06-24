@@ -5,17 +5,19 @@ import { SetUserContext,HandleErrorContext,SetDirtyContext } from './Contexts';
 import API from '../API';
 import validator from 'validator';
 
+// Form component to Perform Login
 function LoginForm(props) {
   // email and password of the user for login (controlled form)
   const [email, setEmail] = useState('u1@p.it');
   const [password, setPassword] = useState('pass');
   // props to set the user state after successfully logged in
   const setUser = useContext(SetUserContext);
-  // contest of setDirty
+  // context of setDirty, to trigger data rehydrating
   const setDirty = useContext(SetDirtyContext);
-  // error message state for handling errors
+  // HandleError function context for handling errors
   const HandleError = useContext(HandleErrorContext);
-  // not showing Login button of the navbar if we have already opened the login form
+  // setInForm state, passed as a prop, used to not show Login button of the navbar if we have already opened the login form
+  // and we are not logged in
   const {setInForm} = props;
   // navigate to return to / after login
   const navigate = useNavigate();
@@ -25,17 +27,18 @@ function LoginForm(props) {
       .then( user => {
         // login successfull, remove eventual error message and set user state
         setUser(user);
-        // refresh data
+        // rehydrate data
         setDirty(true);
       })
       .catch(err => {
-        // Error, display generic error message
+        // Error, display error message
         HandleError(err);
       })
   }
   
   const goHome = () => {
     navigate('/');
+    // enable Login Button on Navbar if not Logged
     setInForm(false);
     // refresh data
     setDirty(true);
@@ -43,8 +46,9 @@ function LoginForm(props) {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    // make reappear the login button on top of the navbar
+    // enable Login Button on Navbar if not Logged
     setInForm(false);
+    // take the user credentials
     const credentials = { username: email, password: password };
     // FORM VALIDATION
     let valid = true;
@@ -54,7 +58,7 @@ function LoginForm(props) {
       // Validation Passed, send the request to the server
       doLogIn(credentials);
     } else {
-      // Validation Failed, show error message
+      // Validation Failed, show proper error message
       if (password === '' && email === '') {
         HandleError({error: 'Empty Email and Password.'});
       } else if (!validator.isEmail(email)) {

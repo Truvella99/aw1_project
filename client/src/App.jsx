@@ -14,19 +14,19 @@ import { UserContext,SetUserContext,HandleErrorContext,SetDirtyContext } from '.
 import { LoadingSpinner } from './components/Loading';
 
 function App() {
-  // state of the user
+  // state of the user, shared with context
   const [user, setUser] = useState({id: undefined, email: undefined, isAdmin: undefined, username: undefined});
   // list of pages in the application
   const [pageList, setPageList] = useState([]);
-  // dirty state to refresh content
+  // dirty state to rehydrate data
   const [dirty,setDirty] = useState(true);
-  // not showing Login button of the navbar if we have already opened the login form
+  // state used for not showing Login button of the navbar if we have already opened the login form
   const [inForm,setInForm] = useState(false);
-  // error message state for handling errors
+  // error message state for handling errors, shared with context
   const [errorMessage, setErrorMessage] = useState('');
-  // name of the webiste state
+  // name of the website state
   const [websiteName,setWebsiteName] = useState('');
-  // loading state: handle the first resource loading, showing a loading spinner
+  // loading state: handle the first resource loading by showing a loading spinner
   const [initialLoading,setInitialLoading] = useState(true);
 
   // function to handle the application errors, all displayed into the Alert under the NavHeader
@@ -40,6 +40,7 @@ function App() {
     setDirty(true);
   }
 
+  // function to get the website name, used in app and in pagecomponent, to retrieve the rehydrated websitename
   async function getWebsiteName() {
     try {
       const websiteName = await API.getWebsiteName();
@@ -54,14 +55,17 @@ function App() {
 
   // useeffect to retrieve all data related to the pages and the website name
   useEffect(() => {
+    // function used to get all pages from the server
+    // frontoffice pages if not logged in
+    // backoffice pages if logged in
     async function getAllPages() {
       try {
         let pages;
         if (user.id) {
-          // get backoffice pages
+          // if user is logged in, get backoffice pages
           pages = await API.getPagesBackOffice();
         } else {
-          // get frontoffice pages
+          // if not logged in, get frontoffice pages
           pages = await API.getPagesFrontOffice();
         }
         setPageList(pages);
@@ -82,17 +86,16 @@ function App() {
       try {
         // here you have the user info, if already logged in
         const user = await API.getUserInfo();
-        //setLoggedIn(true);
         setUser(user);
       } catch(err) {
         // NO need to do anything: user is simply not yet authenticated
-        //handleError(err);
       }
     }
     checkAuth();
   },[]);
 
-  // function to update the website name
+  // function to update the website name (set react state, then effectively make edit permanent by calling the server)
+  // if all right, set dirty to rehydrate the data, else shows the error by handleError function
   function updateWebsiteName(new_name) {
     setWebsiteName(new_name);
 
@@ -101,7 +104,8 @@ function App() {
       .catch((err) => handleError(err));
   }
 
-  // function to add a page
+  // function to add a page (set react state, then effectively make edit permanent by calling the server)
+  // if all right, set dirty to rehydrate the data, else shows the error by handleError function
   function addPage(page) {
     setPageList((oldpageList) => [...oldpageList,page]);
     API.createPage(page)
@@ -109,7 +113,8 @@ function App() {
       .catch((err) => handleError(err));
   }
 
-  // function to delete a page
+  // function to delete a page (set react state, then effectively make edit permanent by calling the server)
+  // if all right, set dirty to rehydrate the data, else shows the error by handleError function
   function deletePage(pageId) {
     setPageList((pageList) => pageList.filter( (page) => {
       if (page.id !== pageId) {
@@ -127,12 +132,14 @@ function App() {
 
   return (
     <>
+      {/* Initial loading handling */}
       {initialLoading && <LoadingSpinner/>}
       <BrowserRouter>
         <UserContext.Provider value={user}>
-          <SetUserContext.Provider value={setUser}> {/*Forse non Serve col context*/}
+          <SetUserContext.Provider value={setUser}> 
             <HandleErrorContext.Provider value={handleError}>
-              <SetDirtyContext.Provider value={setDirty}> {/*Forse non Serve col context*/}
+              <SetDirtyContext.Provider value={setDirty}>
+                {/* Header Element, Alert Element and rest of the application */}
                 <NavHeader inForm={inForm} setInForm={setInForm} websiteName={websiteName} updateWebsiteName={updateWebsiteName}/>
                 {errorMessage ? <Alert variant='danger' dismissible onClick={() => setErrorMessage('')}>{errorMessage}</Alert> : ''}
                 <Routes>
@@ -154,7 +161,7 @@ function App() {
 }
 
 function DefaultRoute() {
-  // props to set the dirty state when changing page
+  // props to rehydrate the data when going back to the main route
   const setDirty = useContext(SetDirtyContext);
   return(
       <div className="position-absolute w-100 h-100 d-flex flex-column align-items-center justify-content-center">

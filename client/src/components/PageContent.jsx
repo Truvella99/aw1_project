@@ -5,20 +5,21 @@ import { Header, Paragraph, Image } from "./Blocks";
 import { BlockForm } from "./BlockManagement";
 
 function PageContent(props) {
-    // list of blocks and relative set function to manage block movement
+    // list of blocks and relative set function to manage block movements
     const { blockList, setBlockList } = props;
-    // state to save source item index (the element on which the drag starts)
+    // state to save source item index (the element from which the drag starts)
     const [sourceIndex, setSourceIndex] = useState(undefined);
-    // state to save destination item index (the element on which the source element is dropped)
+    // state to save destination item index (the element on which the source element is dropped when dragging)
     const [destinationIndex, setDestinationIndex] = useState(undefined);
-    // render_components context flag, for render components or not
+    // render_components context flag, for render_components in editing or not
     const render_components = useContext(render_componentsContext);
     // state to save the current image to modify
     const [imageEditBlock,setImageEditBlock] = useState(undefined);
-    // state to handle the block editing (header/paragraph). the block is disabled only when i am dragging
+    // state to handle the block editing (header/paragraph). the block editing is disabled only when i am dragging
+    // this to avoid dragging image block into header/paragraph block and pasting image url inside them.
     const [disabled,setDisabled] = useState(false);
 
-    // function to add a block from the blocklist
+    // function to add a block to the blocklist
     function addBlock(block) {
         setBlockList((oldBlockList) => [...oldBlockList, block]);
     }
@@ -35,7 +36,7 @@ function PageContent(props) {
         ));
     }
 
-    // function to save the current block edit into the blockList
+    // function to update the current block edit into the blockList
     function saveBlock(updatedBlock) {
         setBlockList((blockList) => blockList.map((block) => {
             if (block.id === updatedBlock.id) {
@@ -47,21 +48,27 @@ function PageContent(props) {
         ));
     }
 
-    // function to handle the drag start
+    // function to handle the drag start event
+    // this event is triggered when we start dragging
     function onDragStart(event, index) {
-        // disable blocks editing
+        // disable blocks editing (start to drag)
         setDisabled(true);
-        // set the start item index
+        // set the start item index from which the drag event starts
         setSourceIndex(index);
     }
 
-    // function to handle the drag enter (su quale elemento andiamo col drag item su quali altri items)
+    // function to handle the drag enter event
+    // this event is triggered when, while dragging an element, with this element we go over another one 
     function onDragEnter(event, index) {
-        // set the destination item index
+        // set the destination item index, that is the element on which we are dragging over
+        // each time this event is triggered, we save this index as potential destination index
+        // potential since maybe we go over several items before releasing the mouse (dragend, see under)
         setDestinationIndex(index);
     }
 
-    // function to handle the drag end, and so the reordering of the list (when we release the mouse)
+    // function to handle the drag end
+    // this event is triggered when we release the mouse and stop dragging
+    // so here the reordering of the block list is managed
     function handleSort(event) {
         // here we reorder the list
         let reordered_list = [...blockList];
@@ -77,11 +84,12 @@ function PageContent(props) {
         setBlockList(reordered_list);
         setSourceIndex(undefined);
         setDestinationIndex(undefined);
-        // enable block editing
+        // enable block editing (finished to drag)
         setDisabled(false);
     }
 
     // each element has the draggable property to make it draggable
+    // pass all the drag function as context to the elements to handle the draggingn properly
     return (
         <onDragStartContext.Provider value={onDragStart}>
             <onDragEnterContext.Provider value={onDragEnter}>
@@ -94,6 +102,7 @@ function PageContent(props) {
                                         {render_components ? <h2 style={{ textAlign: 'center' }}>Drag and Drop Items to Rearrange Them</h2> : ''}
                                         <Container className="blockList">
                                             {blockList.map((block, index) => {
+                                                // map each block accordingly to the type
                                                 switch (block.type) {
                                                     case "Header":
                                                         return <Header className='block' key={block.id} block={block} index={index} />;
@@ -102,6 +111,7 @@ function PageContent(props) {
                                                         return <Paragraph className='block' key={block.id} block={block} index={index} />;
                                                         break;
                                                     case "Image":
+                                                        // in this case we pass also setImageEditBlock, ini case we want to edit the image of this specific block
                                                         return <Image className='block' key={block.id} block={block} index={index} setImageEditBlock={setImageEditBlock} />;
                                                         break;
                                                     default:
@@ -111,6 +121,7 @@ function PageContent(props) {
                                         </Container>
                                     </Col>
                                     <Col md={5} className='BlockFormContent'>
+                                        {/* Render or not the BLockForm component, used to Add A new Header,Paragraph,Image Block and edit an Image Block */}
                                         {render_components ? <BlockForm imageEditBlock={imageEditBlock} setImageEditBlock={setImageEditBlock} blockList={blockList} addBlock={addBlock} /> : ''}
                                     </Col>
                                 </>

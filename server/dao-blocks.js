@@ -4,11 +4,12 @@
 
 const db = require('./db');
 
-// This function returns all blocks of a given page.
+// This function returns all blocks of a given page (pageId).
 exports.getBlocksByPageId = (pageId) => {
     return new Promise((resolve, reject) => {
         const sql = 'SELECT * FROM blocks WHERE pageId=? ORDER BY blockOrder';
         db.all(sql, [pageId], (err, rows) => {
+            // if query error, reject the promise, otherwise return the content
             if (err)
                 reject(err);
             else {
@@ -19,12 +20,14 @@ exports.getBlocksByPageId = (pageId) => {
     });
 };
 
+/*
 // NON USATA
 // this function returns the number of blocks of a given page
 exports.getNumberOfBlocks = (pageId) => {
     return new Promise((resolve, reject) => {
         const sql = 'SELECT COUNT(*) FROM blocks WHERE pageId = ?';
         db.get(sql, [pageId], (err, row) => {
+            // if query error, reject the promise, otherwise return the content
             if (err) {
                 reject(err);
             } else {
@@ -34,12 +37,14 @@ exports.getNumberOfBlocks = (pageId) => {
         });
     });
 };
+*/
 
 // This function return a specific block given its id.
 exports.getBlock = (blockId) => {
     return new Promise((resolve, reject) => {
         const sql = 'SELECT * FROM blocks WHERE id=?';
         db.get(sql, [blockId], (err, row) => {
+            // if query error, reject the promise, otherwise if not found return an error else return the content
             if (err) {
                 reject(err);
             } else if (row === undefined) {
@@ -58,6 +63,7 @@ exports.insertBlock = (block) => {
     return new Promise((resolve, reject) => {
         const sql = 'INSERT INTO blocks (pageId, type, content, blockOrder) VALUES(?, ?, ?, ?)';
         db.run(sql, [block.pageId,block.type,block.content,block.blockOrder], function (err) {
+            // if query error, reject the promise, otherwise return the content
             if (err) {
                 reject(err);
             } else {
@@ -68,12 +74,14 @@ exports.insertBlock = (block) => {
     });
 };
 
+/*
 // NON USATA
 // This function updates a block.
 exports.updateBlock = (blockId,block) => {
     return new Promise((resolve, reject) => {
         const sql = 'UPDATE blocks SET pageId=?, type=?, content=?, blockOrder=? WHERE id=?';
         db.run(sql, [block.pageId,block.type,block.content,block.blockOrder,blockId], function (err) {
+            // if query error, reject the promise, otherwise if no changes return an error else return the content
             if (err) {
                 reject(err);
             }
@@ -86,12 +94,14 @@ exports.updateBlock = (blockId,block) => {
         });
     });
 };
+*/
 
 // This function deletes an existing block given its id.
 exports.deleteAllPageBlocks = (pageId) => {
     return new Promise((resolve, reject) => {
         const sql = 'DELETE FROM blocks WHERE pageId=?';
         db.run(sql, [pageId], function (err) {
+            // if query error, reject the promise, otherwise if no changes return an error else return the content
             if (err) {
                 reject(err);
             } else if (this.changes === 0) {
