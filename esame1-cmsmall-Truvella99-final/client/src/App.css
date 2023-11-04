@@ -1,0 +1,45 @@
+.AddButton {
+  margin-left: 8%;
+  border-radius: 50%;
+}
+
+.icons {
+  margin-left: 5%;
+  margin-right: 5%;
+}
+
+a {
+  margin-left: 5%;
+  margin-right: 5%;
+}
+
+.custom-cursor {
+  cursor: grab;
+}
+
+.PageContent {
+  margin: none;
+}
+
+.BlockFormContent {
+  display: grid;
+  place-items: center;
+}
+
+.blockList {
+  overflow: 'auto';
+  max-height: '600px';
+  background-color: rgb(235, 233, 233) !important;
+}
+
+.buttons {
+  position:sticky;
+  text-align: right;
+  margin-right: 0%;
+  margin-top: 2%;
+  z-index: 2;
+}
+
+.buttons Button {
+  margin-right: 5%;
+}
